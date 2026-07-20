@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminAccess } from "@/lib/session";
 import { CompanyForm } from "@/components/CompanyForm";
+import { CompanyLogo } from "@/components/CompanyLogo";
 
 export default async function EmpresasPage() {
   await requireAdminAccess();
@@ -11,30 +12,26 @@ export default async function EmpresasPage() {
   });
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900">Empresas del grupo</h1>
+    <div className="max-w-3xl space-y-6">
+      <h1 className="font-display text-2xl text-ink">Empresas del grupo</h1>
 
       <CompanyForm />
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
-            <tr>
-              <th className="text-left font-medium px-4 py-2">Empresa</th>
-              <th className="text-left font-medium px-4 py-2">Usuarios</th>
-              <th className="text-left font-medium px-4 py-2">Documentos</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companies.map((c) => (
-              <tr key={c.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 font-medium text-slate-900">{c.name}</td>
-                <td className="px-4 py-3 text-slate-600">{c._count.users}</td>
-                <td className="px-4 py-3 text-slate-600">{c._count.submissions}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {companies.map((c) => (
+          <div
+            key={c.id}
+            className="bg-surface border border-line rounded-2xl p-4 flex items-center gap-3"
+          >
+            <CompanyLogo name={c.name} logoPath={c.logoPath} size={44} />
+            <div className="min-w-0">
+              <p className="font-medium text-ink truncate">{c.name}</p>
+              <p className="text-xs text-ink-soft mt-0.5">
+                {c._count.users} usuario(s) · {c._count.submissions} documento(s)
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

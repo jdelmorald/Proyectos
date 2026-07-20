@@ -14,47 +14,48 @@ export default async function UsuariosPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900">Usuarios</h1>
+      <h1 className="font-display text-2xl text-ink">Usuarios</h1>
 
       {companies.length === 0 ? (
-        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3.5">
           Primero crea una empresa en la sección Empresas antes de invitar colaboradores o gerentes.
         </p>
       ) : (
         <CreateUserForm companies={companies.map((c) => ({ id: c.id, name: c.name }))} />
       )}
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="bg-surface border border-line rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
+          <thead className="text-ink-soft text-[11px] uppercase tracking-wide">
             <tr>
-              <th className="text-left font-medium px-4 py-2">Nombre</th>
-              <th className="text-left font-medium px-4 py-2">Correo</th>
-              <th className="text-left font-medium px-4 py-2">Rol</th>
-              <th className="text-left font-medium px-4 py-2">Empresa</th>
-              <th className="text-left font-medium px-4 py-2">Estado</th>
-              <th className="text-left font-medium px-4 py-2"></th>
+              <th className="text-left font-medium px-5 py-3">Nombre</th>
+              <th className="text-left font-medium px-5 py-3">Correo</th>
+              <th className="text-left font-medium px-5 py-3">Rol</th>
+              <th className="text-left font-medium px-5 py-3">Empresa</th>
+              <th className="text-left font-medium px-5 py-3">Estado</th>
+              <th className="text-left font-medium px-5 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 font-medium text-slate-900">{u.name}</td>
-                <td className="px-4 py-3 text-slate-600">{u.email}</td>
-                <td className="px-4 py-3 text-slate-600">{ROLE_LABELS[u.role]}</td>
-                <td className="px-4 py-3 text-slate-600">{u.company?.name ?? "—"}</td>
-                <td className="px-4 py-3">
+              <tr key={u.id} className="border-t border-line">
+                <td className="px-5 py-3.5 font-medium text-ink">{u.name}</td>
+                <td className="px-5 py-3.5 text-ink-soft">{u.email}</td>
+                <td className="px-5 py-3.5 text-ink-soft">{ROLE_LABELS[u.role]}</td>
+                <td className="px-5 py-3.5 text-ink-soft">{u.company?.name ?? "—"}</td>
+                <td className="px-5 py-3.5">
                   <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
-                      u.active
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "bg-slate-100 text-slate-500 border-slate-200"
+                    className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                      u.active ? "text-emerald-800" : "text-ink-soft"
                     }`}
                   >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${u.active ? "bg-emerald-600" : "bg-ink-soft"}`}
+                    />
                     {u.active ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-3.5">
                   {u.id !== currentUser.id && <ToggleUserButton userId={u.id} active={u.active} />}
                 </td>
               </tr>

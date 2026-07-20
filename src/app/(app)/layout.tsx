@@ -1,13 +1,15 @@
 import { requireUser } from "@/lib/session";
-import { Nav } from "@/components/Nav";
+import { Sidebar } from "@/components/Sidebar";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Nav name={user.name ?? user.email ?? "Usuario"} role={user.role} />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8">{children}</main>
+    <div className="min-h-screen md:flex">
+      <Sidebar name={user.name ?? user.email ?? "Usuario"} role={user.role} />
+      <main className="flex-1 md:pl-60">
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 py-10">{children}</div>
+      </main>
     </div>
   );
 }

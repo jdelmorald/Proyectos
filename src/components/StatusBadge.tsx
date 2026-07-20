@@ -1,12 +1,15 @@
-import { STATUS_LABELS, STATUS_BADGE_CLASSES } from "@/lib/validation";
+import { STATUS_LABELS, STATUS_DOT_CLASSES, STATUS_TEXT_CLASSES } from "@/lib/validation";
 
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-        STATUS_BADGE_CLASSES[status] ?? "bg-slate-100 text-slate-700 border-slate-300"
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+        STATUS_TEXT_CLASSES[status] ?? "text-ink-soft"
       }`}
     >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT_CLASSES[status] ?? "bg-ink-soft"}`}
+      />
       {STATUS_LABELS[status] ?? status}
     </span>
   );

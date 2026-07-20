@@ -6,40 +6,42 @@ import { DOCUMENT_TYPE_LABELS } from "@/lib/validation";
 
 const initialState = null;
 
+const inputClass =
+  "w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent";
+const labelClass = "block text-xs uppercase tracking-wide text-ink-soft mb-1.5";
+
 export default function NewSubmissionPage() {
   const [state, formAction, pending] = useActionState(createSubmission, initialState);
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-slate-900 mb-1">Nuevo documento</h1>
-      <p className="text-sm text-slate-500 mb-6">
-        Sube el archivo para revisión del director general.
+      <h1 className="font-display text-2xl text-ink mb-1">Nuevo documento</h1>
+      <p className="text-sm text-ink-soft mb-8">
+        Sube el archivo para revisión de tu gerente y Dirección General.
       </p>
 
-      <form action={formAction} className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+      <form
+        action={formAction}
+        className="bg-surface border border-line rounded-2xl p-6 space-y-5"
+      >
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="title" className={labelClass}>
             Título
           </label>
           <input
             id="title"
             name="title"
             required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+            className={inputClass}
             placeholder="Presupuesto de mercadeo Q3"
           />
         </div>
 
         <div>
-          <label htmlFor="type" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="type" className={labelClass}>
             Tipo de documento
           </label>
-          <select
-            id="type"
-            name="type"
-            defaultValue="PRESUPUESTO"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-          >
+          <select id="type" name="type" defaultValue="PRESUPUESTO" className={inputClass}>
             {Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -49,20 +51,20 @@ export default function NewSubmissionPage() {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="description" className={labelClass}>
             Descripción / notas para el revisor
           </label>
           <textarea
             id="description"
             name="description"
             rows={3}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+            className={inputClass}
             placeholder="Contexto breve del documento"
           />
         </div>
 
         <div>
-          <label htmlFor="file" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="file" className={labelClass}>
             Archivo (Word, Excel, PowerPoint, PDF, imagen — máx. 25 MB)
           </label>
           <input
@@ -71,18 +73,16 @@ export default function NewSubmissionPage() {
             type="file"
             required
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg"
-            className="w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-slate-200"
+            className="w-full text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-accent-soft file:text-accent file:px-3.5 file:py-2 file:text-sm file:font-medium hover:file:bg-accent-soft/70"
           />
         </div>
 
-        {state && "error" in state && (
-          <p className="text-sm text-red-600">{state.error}</p>
-        )}
+        {state && "error" in state && <p className="text-sm text-red-700">{state.error}</p>}
 
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-md bg-slate-900 text-white text-sm font-medium py-2 hover:bg-slate-800 disabled:opacity-50"
+          className="w-full rounded-lg bg-ink text-white text-sm font-medium py-2.5 hover:bg-ink/90 disabled:opacity-50 transition-colors"
         >
           {pending ? "Enviando..." : "Enviar para revisión"}
         </button>

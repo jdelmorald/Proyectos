@@ -14,7 +14,7 @@ export function ToggleUserButton({ userId, active }: { userId: string; active: b
       <button
         type="submit"
         disabled={pending}
-        className="text-xs text-slate-500 hover:text-slate-900 underline disabled:opacity-50"
+        className="text-xs text-ink-soft hover:text-ink underline disabled:opacity-50"
       >
         {active ? "Desactivar" : "Activar"}
       </button>

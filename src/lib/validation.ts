@@ -14,12 +14,20 @@ export const STATUS_LABELS: Record<string, string> = {
   RECHAZADO: "Rechazado",
 };
 
-export const STATUS_BADGE_CLASSES: Record<string, string> = {
-  ENVIADO: "bg-amber-100 text-amber-800 border-amber-300",
-  EN_REVISION_DIRECCION: "bg-blue-100 text-blue-800 border-blue-300",
-  OBJETADO: "bg-red-100 text-red-800 border-red-300",
-  APROBADO: "bg-green-100 text-green-800 border-green-300",
-  RECHAZADO: "bg-gray-200 text-gray-700 border-gray-400",
+export const STATUS_DOT_CLASSES: Record<string, string> = {
+  ENVIADO: "bg-amber-500",
+  EN_REVISION_DIRECCION: "bg-sky-600",
+  OBJETADO: "bg-red-600",
+  APROBADO: "bg-emerald-600",
+  RECHAZADO: "bg-ink-soft",
+};
+
+export const STATUS_TEXT_CLASSES: Record<string, string> = {
+  ENVIADO: "text-amber-800",
+  EN_REVISION_DIRECCION: "text-sky-800",
+  OBJETADO: "text-red-800",
+  APROBADO: "text-emerald-800",
+  RECHAZADO: "text-ink-soft",
 };
 
 export const ACTION_LABELS: Record<string, string> = {

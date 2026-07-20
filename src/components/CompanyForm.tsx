@@ -9,29 +9,38 @@ export function CompanyForm() {
   const [state, formAction, pending] = useActionState(createCompany, initialState);
 
   return (
-    <form action={formAction} className="bg-white border border-slate-200 rounded-xl p-5 space-y-3">
-      <div className="flex items-end gap-3">
-        <div className="flex-1">
-          <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
-            Nueva empresa
-          </label>
+    <form action={formAction} className="bg-surface border border-line rounded-2xl p-5 space-y-3">
+      <h2 className="text-xs uppercase tracking-wide text-ink-soft">Nueva empresa</h2>
+      <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+        <div>
           <input
             id="name"
             name="name"
             required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+            className="w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
             placeholder="Nombre de la empresa"
           />
         </div>
+        <div>
+          <input
+            id="logo"
+            name="logo"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="text-xs text-ink-soft file:mr-2 file:rounded-lg file:border-0 file:bg-accent-soft file:text-accent file:px-3 file:py-2 file:text-xs file:font-medium hover:file:bg-accent-soft/70"
+          />
+        </div>
+      </div>
+      <div>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-800 disabled:opacity-50"
+          className="rounded-lg bg-ink text-white text-sm font-medium px-4 py-2 hover:bg-ink/90 disabled:opacity-50 transition-colors"
         >
-          {pending ? "Creando..." : "Agregar"}
+          {pending ? "Creando..." : "Agregar empresa"}
         </button>
       </div>
-      {state && "error" in state && <p className="text-sm text-red-600">{state.error}</p>}
+      {state && "error" in state && <p className="text-sm text-red-700">{state.error}</p>}
     </form>
   );
 }
