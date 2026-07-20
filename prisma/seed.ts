@@ -5,12 +5,12 @@ import { PrismaClient } from "../src/generated/prisma/client";
 const prisma = new PrismaClient();
 
 const COMPANIES = [
-  { id: "seed-veeme", name: "Veeme", logoPath: null as string | null },
-  { id: "seed-labcenter", name: "Labcenter", logoPath: null as string | null },
-  { id: "seed-madre-maria", name: "Madre María de San José", logoPath: null as string | null },
-  { id: "seed-totem", name: "Totem", logoPath: null as string | null },
-  { id: "seed-vemolca", name: "Vemolca", logoPath: null as string | null },
-  { id: "seed-kacrea", name: "Kacrea", logoPath: null as string | null },
+  { id: "seed-veeme", name: "Veeme", logoPath: "/logos/veeme.png" },
+  { id: "seed-labcenter", name: "Labcenter", logoPath: "/logos/labcenter.jpg" },
+  { id: "seed-madre-maria", name: "Madre María de San José", logoPath: "/logos/madre-maria.jpg" },
+  { id: "seed-totem", name: "Totem", logoPath: "/logos/totem.jpg" },
+  { id: "seed-vemolca", name: "Vemolca", logoPath: "/logos/vemolca.jpg" },
+  { id: "seed-kacrea", name: "Kacrea", logoPath: "/logos/kacrea.png" },
 ];
 
 const GERENTES = [

@@ -25,16 +25,10 @@ export function CompanyLogo({
   if (logoPath) {
     return (
       <span
-        className="inline-flex items-center justify-center bg-white rounded-md border border-[var(--line)] overflow-hidden shrink-0"
-        style={{ width: size, height: size }}
+        className="relative inline-block shrink-0"
+        style={{ height: size, width: size * 3.4 }}
       >
-        <Image
-          src={logoPath}
-          alt={name}
-          width={size}
-          height={size}
-          className="object-contain w-full h-full p-0.5"
-        />
+        <Image src={logoPath} alt={name} fill sizes={`${size * 3.4}px`} className="object-contain object-left" />
       </span>
     );
   }
