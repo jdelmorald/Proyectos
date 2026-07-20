@@ -10,6 +10,8 @@ export interface Empresa {
   municipio: string | null;
   alicuota_municipal: number;
   valor_ut: number;
+  logo_data_url: string | null;
+  color: string;
 }
 
 interface EmpresaContextValue {

@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS empresas (
   municipio TEXT,
   alicuota_municipal REAL NOT NULL DEFAULT 0,
   valor_ut REAL NOT NULL DEFAULT 0,
+  logo_data_url TEXT,
+  color TEXT NOT NULL DEFAULT '#0f766e',
   activo INTEGER NOT NULL DEFAULT 1
 );
 

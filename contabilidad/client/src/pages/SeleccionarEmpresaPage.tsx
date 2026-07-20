@@ -71,21 +71,46 @@ export default function SeleccionarEmpresaPage() {
         {loading ? (
           <div className="text-slate-400">Cargando empresas...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl">
-            {MARCAS.map((marca) => {
-              const empresa = empresas.find((e) => e.nombre === marca.match);
-              if (!empresa) return null;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+            {empresas.map((empresa) => {
+              const marca = MARCAS.find((m) => m.match === empresa.nombre);
+              if (marca) {
+                return (
+                  <button
+                    key={empresa.id}
+                    onClick={() => elegir(empresa.id)}
+                    className={`bg-white rounded-2xl border-2 p-6 flex flex-col items-center gap-4 shadow-sm hover:shadow-xl transition-all ${marca.cardClass}`}
+                  >
+                    <img src={marca.logo} alt={empresa.nombre} className="h-20 w-auto object-contain" />
+                    <div className={`text-lg font-extrabold tracking-tight ${marca.titleClass}`}>
+                      {empresa.nombre.toUpperCase()}
+                    </div>
+                    <div className="w-16">{marca.bar}</div>
+                  </button>
+                );
+              }
+              // Empresa sin marca predefinida (agregada desde Configuración → Empresas):
+              // misma tarjeta, pero con su logo y color propios en vez de los 3 de fábrica.
+              const color = empresa.color || '#0f766e';
               return (
                 <button
                   key={empresa.id}
                   onClick={() => elegir(empresa.id)}
-                  className={`bg-white rounded-2xl border-2 p-6 flex flex-col items-center gap-4 shadow-sm hover:shadow-xl transition-all ${marca.cardClass}`}
+                  style={{ borderColor: `${color}4d` }}
+                  className="bg-white rounded-2xl border-2 p-6 flex flex-col items-center gap-4 shadow-sm hover:shadow-xl transition-all"
                 >
-                  <img src={marca.logo} alt={empresa.nombre} className="h-20 w-auto object-contain" />
-                  <div className={`text-lg font-extrabold tracking-tight ${marca.titleClass}`}>
-                    {empresa.nombre.toUpperCase()}
-                  </div>
-                  <div className="w-16">{marca.bar}</div>
+                  {empresa.logo_data_url ? (
+                    <img src={empresa.logo_data_url} alt={empresa.nombre} className="h-20 w-auto object-contain" />
+                  ) : (
+                    <div
+                      className="h-20 w-20 rounded-full flex items-center justify-center text-2xl font-extrabold text-white"
+                      style={{ backgroundColor: color }}
+                    >
+                      {empresa.nombre.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="text-lg font-extrabold tracking-tight text-brand-900">{empresa.nombre.toUpperCase()}</div>
+                  <div className="w-16 h-1.5 rounded-full" style={{ backgroundColor: color }} />
                 </button>
               );
             })}

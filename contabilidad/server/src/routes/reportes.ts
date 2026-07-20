@@ -64,9 +64,9 @@ reportesRouter.get('/balance-comprobacion', (req, res) => {
       COALESCE(SUM(al.haber), 0) AS total_haber
     FROM plan_cuentas pc
     LEFT JOIN asiento_lineas al ON al.cuenta_id = pc.id
-    LEFT JOIN asientos a ON a.id = al.asiento_id AND a.estado = 'registrado'
+    LEFT JOIN asientos a ON a.id = al.asiento_id
   `;
-  const conditions = ['pc.empresa_id = ?', 'pc.permite_movimiento = 1'];
+  const conditions = ['pc.empresa_id = ?', 'pc.permite_movimiento = 1', "(a.estado = 'registrado' OR a.id IS NULL)"];
   const params: (string | number)[] = [empresaId];
   if (desde) { conditions.push('(a.fecha IS NULL OR a.fecha >= ?)'); params.push(desde); }
   if (hasta) { conditions.push('(a.fecha IS NULL OR a.fecha <= ?)'); params.push(hasta); }
@@ -113,10 +113,13 @@ function saldosPorTipo(empresaId: number, hasta: string | undefined, desde: stri
       COALESCE(SUM(al.haber), 0) AS total_haber
     FROM plan_cuentas pc
     LEFT JOIN asiento_lineas al ON al.cuenta_id = pc.id
-    LEFT JOIN asientos a ON a.id = al.asiento_id AND a.estado = 'registrado'
+    LEFT JOIN asientos a ON a.id = al.asiento_id
   `;
   const placeholders = tipos.map(() => '?').join(',');
-  const conditions = ['pc.empresa_id = ?', 'pc.permite_movimiento = 1', `pc.tipo IN (${placeholders})`];
+  const conditions = [
+    'pc.empresa_id = ?', 'pc.permite_movimiento = 1', `pc.tipo IN (${placeholders})`,
+    "(a.estado = 'registrado' OR a.id IS NULL)",
+  ];
   const params: (string | number)[] = [empresaId, ...tipos];
   if (desde) { conditions.push('(a.fecha IS NULL OR a.fecha >= ?)'); params.push(desde); }
   if (hasta) { conditions.push('(a.fecha IS NULL OR a.fecha <= ?)'); params.push(hasta); }

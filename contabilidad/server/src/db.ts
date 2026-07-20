@@ -42,6 +42,8 @@ agregarColumnaSiFalta('asiento_lineas', 'tasa_cambio', 'REAL');
 agregarColumnaSiFalta('plan_cuentas', 'subledger', 'TEXT');
 agregarColumnaSiFalta('libro_ventas', 'iva_retenido', 'REAL NOT NULL DEFAULT 0');
 agregarColumnaSiFalta('empresas', 'valor_ut', 'REAL NOT NULL DEFAULT 0');
+agregarColumnaSiFalta('empresas', 'logo_data_url', 'TEXT');
+agregarColumnaSiFalta('empresas', 'color', "TEXT NOT NULL DEFAULT '#0f766e'");
 
 let transactionDepth = 0;
 
