@@ -54,12 +54,25 @@ historial completo de cada intercambio hasta la aprobación final.
 ```bash
 npm install
 cp .env.example .env          # y genera un NEXTAUTH_SECRET propio
-npx prisma migrate dev         # crea la base de datos SQLite
-npx prisma db seed             # crea datos de ejemplo (ver abajo)
+npx prisma migrate dev         # crea la base de datos SQLite y los datos de ejemplo
 npm run dev
 ```
 
 Abre [http://localhost:3000](http://localhost:3000).
+
+### En Windows, sin usar la terminal
+
+Para alguien sin experiencia técnica, el repositorio incluye tres archivos en
+la raíz pensados para usarse con doble clic, sin abrir ninguna consola:
+
+- **`Instalar (solo la primera vez).bat`** — instala todo y prepara la base de
+  datos. Se usa una sola vez (o de nuevo si algo se corrompe).
+- **`Iniciar Revisor.vbs`** — enciende la plataforma sin mostrar ninguna
+  ventana y abre el navegador solo. Úsalo cada vez que quieras usar la
+  plataforma.
+- **`Detener Revisor.bat`** — apaga la plataforma cuando termines.
+
+Requiere tener [Node.js](https://nodejs.org) (versión LTS) instalado primero.
 
 ### Cuentas de ejemplo (creadas por el seed)
 
