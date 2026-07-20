@@ -15,6 +15,12 @@ export function canReviewSubmissions(role: AppRole) {
   return role === "DIRECTOR" || role === "GERENTE";
 }
 
+export function greetingForHour(hour: number) {
+  if (hour < 12) return "Buenos días";
+  if (hour < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
+
 type SessionUser = { id: string; role: AppRole; companyId: string | null };
 type SubmissionScope = { authorId: string; companyId: string };
 

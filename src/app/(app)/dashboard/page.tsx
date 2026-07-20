@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import { AnalyticsOverview } from "@/components/AnalyticsOverview";
+import { getStatusOverview, getCompanyBreakdown } from "@/lib/analytics";
 import { DOCUMENT_TYPE_LABELS } from "@/lib/validation";
-import { canReviewSubmissions } from "@/lib/roles";
+import { canReviewSubmissions, isAdminRole, greetingForHour } from "@/lib/roles";
 import type { Prisma } from "@/generated/prisma";
 
 const FILTERS = [
@@ -27,6 +29,7 @@ export default async function DashboardPage({
   const statusFilter = status ? { status: status as never } : {};
   const showCompanyColumn = user.role === "ADMINISTRADOR" || user.role === "DIRECTOR";
   const showAuthorColumn = user.role !== "COLABORADOR";
+  const showAnalytics = isAdminRole(user.role);
 
   let where: Prisma.SubmissionWhereInput = statusFilter;
   if (user.role === "GERENTE") {
@@ -35,11 +38,15 @@ export default async function DashboardPage({
     where = { authorId: user.id, ...statusFilter };
   }
 
-  const submissions = await prisma.submission.findMany({
-    where,
-    orderBy: { updatedAt: "desc" },
-    include: { company: true, author: true },
-  });
+  const [submissions, statusOverview, companyBreakdown] = await Promise.all([
+    prisma.submission.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      include: { company: true, author: true },
+    }),
+    showAnalytics ? getStatusOverview() : Promise.resolve(null),
+    showAnalytics ? getCompanyBreakdown() : Promise.resolve(null),
+  ]);
 
   let pendingCount = 0;
   if (user.role === "DIRECTOR") {
@@ -69,6 +76,9 @@ export default async function DashboardPage({
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
+          <p className="text-sm text-ink-soft mb-1">
+            {greetingForHour(new Date().getHours())}, {(user.name ?? "").trim().split(" ")[0]}
+          </p>
           <h1 className="font-display text-2xl text-ink">{title}</h1>
           {pendingCount > 0 && canReviewSubmissions(user.role) && (
             <p className="text-sm text-amber-800 mt-1.5">
@@ -90,6 +100,10 @@ export default async function DashboardPage({
           </Link>
         )}
       </div>
+
+      {showAnalytics && statusOverview && companyBreakdown && (
+        <AnalyticsOverview statusOverview={statusOverview} companyBreakdown={companyBreakdown} />
+      )}
 
       <div className="flex gap-1.5 mb-5 overflow-x-auto">
         {FILTERS.map((f) => (
