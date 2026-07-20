@@ -1,0 +1,101 @@
+import { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useEmpresa } from '../context/EmpresaContext';
+import sumivensaLogo from '../assets/sumivensa-logo.png';
+import indeldercaLogo from '../assets/indelderca-logo.png';
+import saludsanmarcosLogo from '../assets/saludsanmarcos-logo.jpg';
+
+interface MarcaConfig {
+  match: string;
+  logo: string;
+  cardClass: string;
+  titleClass: string;
+  bar: ReactNode;
+}
+
+const MARCAS: MarcaConfig[] = [
+  {
+    match: 'Sumivensa',
+    logo: sumivensaLogo,
+    cardClass: 'border-sumivensa-brand-500/30 hover:border-sumivensa-accent-500 hover:shadow-sumivensa-brand-900/20',
+    titleClass: 'text-sumivensa-brand-900',
+    bar: <div className="h-1.5 rounded-full bg-sumivensa-accent-500" />,
+  },
+  {
+    match: 'Salud San Marcos',
+    logo: saludsanmarcosLogo,
+    cardClass: 'border-saludsanmarcos-brand-500/30 hover:border-saludsanmarcos-accent-500 hover:shadow-saludsanmarcos-brand-900/20',
+    titleClass: 'text-saludsanmarcos-brand-900',
+    bar: <div className="h-1.5 rounded-full bg-saludsanmarcos-accent-500" />,
+  },
+  {
+    match: 'Indelderca',
+    logo: indeldercaLogo,
+    cardClass: 'border-indelderca-brand-500/30 hover:border-indelderca-accent-500 hover:shadow-indelderca-brand-900/20',
+    titleClass: 'text-indelderca-brand-900',
+    bar: (
+      <div className="flex h-1.5 rounded-full overflow-hidden border border-slate-300">
+        <div className="flex-1 bg-indelderca-italia" />
+        <div className="flex-1 bg-white" />
+        <div className="flex-1 bg-indelderca-accent-500" />
+      </div>
+    ),
+  },
+];
+
+export default function SeleccionarEmpresaPage() {
+  const { user, logout } = useAuth();
+  const { empresas, setEmpresaId, loading } = useEmpresa();
+  const navigate = useNavigate();
+
+  function elegir(id: number) {
+    setEmpresaId(id);
+    navigate('/');
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="h-1.5 bg-gradient-to-r from-brand-900 via-gold-500 to-accent-600" />
+
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
+        <div className="text-center mb-2">
+          <div className="text-sm font-semibold tracking-[0.25em] text-gold-600">SISTEMA CONTABLE · GRUPO DELDER</div>
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-brand-900 text-center mt-4">
+          BIENVENIDO{user?.nombre ? `, ${user.nombre.toUpperCase()}` : ''}
+        </h1>
+        <p className="text-slate-500 mt-2 mb-10 text-center">¿A qué empresa deseas acceder?</p>
+
+        {loading ? (
+          <div className="text-slate-400">Cargando empresas...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl">
+            {MARCAS.map((marca) => {
+              const empresa = empresas.find((e) => e.nombre === marca.match);
+              if (!empresa) return null;
+              return (
+                <button
+                  key={empresa.id}
+                  onClick={() => elegir(empresa.id)}
+                  className={`bg-white rounded-2xl border-2 p-6 flex flex-col items-center gap-4 shadow-sm hover:shadow-xl transition-all ${marca.cardClass}`}
+                >
+                  <img src={marca.logo} alt={empresa.nombre} className="h-20 w-auto object-contain" />
+                  <div className={`text-lg font-extrabold tracking-tight ${marca.titleClass}`}>
+                    {empresa.nombre.toUpperCase()}
+                  </div>
+                  <div className="w-16">{marca.bar}</div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <button onClick={() => { logout(); navigate('/login'); }} className="mt-12 text-sm text-slate-400 hover:text-slate-600 hover:underline">
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  );
+}
