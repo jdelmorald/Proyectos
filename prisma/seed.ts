@@ -5,11 +5,30 @@ import { PrismaClient } from "../src/generated/prisma/client";
 const prisma = new PrismaClient();
 
 const COMPANIES = [
-  { id: "seed-empresa-a", name: "Constructora Andina" },
-  { id: "seed-empresa-b", name: "Logística del Valle" },
-  { id: "seed-empresa-c", name: "Agroindustrial del Norte" },
-  { id: "seed-empresa-d", name: "Textiles del Pacífico" },
-  { id: "seed-empresa-e", name: "Inversiones Río Grande" },
+  { id: "seed-veeme", name: "Veeme", logoPath: null as string | null },
+  { id: "seed-labcenter", name: "Labcenter", logoPath: null as string | null },
+  { id: "seed-madre-maria", name: "Madre María de San José", logoPath: null as string | null },
+  { id: "seed-totem", name: "Totem", logoPath: null as string | null },
+  { id: "seed-vemolca", name: "Vemolca", logoPath: null as string | null },
+  { id: "seed-kacrea", name: "Kacrea", logoPath: null as string | null },
+];
+
+const GERENTES = [
+  { name: "Ana Beltrán", email: "gerente.veeme@grupo.com" },
+  { name: "Jorge Salcedo", email: "gerente.labcenter@grupo.com" },
+  { name: "Patricia Núñez", email: "gerente.madremaria@grupo.com" },
+  { name: "Rodrigo Espinoza", email: "gerente.totem@grupo.com" },
+  { name: "Valentina Rojas", email: "gerente.vemolca@grupo.com" },
+  { name: "Diego Castañeda", email: "gerente.kacrea@grupo.com" },
+];
+
+const COLABORADORES = [
+  { name: "María Fernández", email: "colaborador.veeme@grupo.com" },
+  { name: "Carlos Ramírez", email: "colaborador.labcenter@grupo.com" },
+  { name: "Sofía Peralta", email: "colaborador.madremaria@grupo.com" },
+  { name: "Andrés Molina", email: "colaborador.totem@grupo.com" },
+  { name: "Camila Torres", email: "colaborador.vemolca@grupo.com" },
+  { name: "Fernando Aguirre", email: "colaborador.kacrea@grupo.com" },
 ];
 
 async function main() {
@@ -42,63 +61,47 @@ async function main() {
 
   const companies = await Promise.all(
     COMPANIES.map((c) =>
-      prisma.company.upsert({ where: { id: c.id }, update: {}, create: c })
+      prisma.company.upsert({
+        where: { id: c.id },
+        update: { logoPath: c.logoPath },
+        create: c,
+      })
     )
   );
 
-  const gerentes = [
-    { name: "Ana Beltrán", email: "gerente.andina@grupo.com" },
-    { name: "Jorge Salcedo", email: "gerente.valle@grupo.com" },
-    { name: "Patricia Núñez", email: "gerente.norte@grupo.com" },
-    { name: "Rodrigo Espinoza", email: "gerente.pacifico@grupo.com" },
-    { name: "Valentina Rojas", email: "gerente.riogrande@grupo.com" },
-  ];
-
   for (let i = 0; i < companies.length; i++) {
     await prisma.user.upsert({
-      where: { email: gerentes[i].email },
+      where: { email: GERENTES[i].email },
       update: {},
       create: {
-        name: gerentes[i].name,
-        email: gerentes[i].email,
+        name: GERENTES[i].name,
+        email: GERENTES[i].email,
         passwordHash: gerentePassword,
         role: "GERENTE",
         companyId: companies[i].id,
       },
     });
+
+    await prisma.user.upsert({
+      where: { email: COLABORADORES[i].email },
+      update: {},
+      create: {
+        name: COLABORADORES[i].name,
+        email: COLABORADORES[i].email,
+        passwordHash: colaboradorPassword,
+        role: "COLABORADOR",
+        companyId: companies[i].id,
+      },
+    });
   }
-
-  await prisma.user.upsert({
-    where: { email: "colaborador@grupo.com" },
-    update: {},
-    create: {
-      name: "María Fernández",
-      email: "colaborador@grupo.com",
-      passwordHash: colaboradorPassword,
-      role: "COLABORADOR",
-      companyId: companies[0].id,
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: "colaborador2@grupo.com" },
-    update: {},
-    create: {
-      name: "Carlos Ramírez",
-      email: "colaborador2@grupo.com",
-      passwordHash: colaboradorPassword,
-      role: "COLABORADOR",
-      companyId: companies[1].id,
-    },
-  });
 
   console.log("Datos de ejemplo creados:");
   console.log("  Administrador: admin@grupo.com / Administrador123!");
   console.log("  Director:      director@grupo.com / Director123!");
-  console.log("  Gerentes (una por empresa, contraseña Gerente123!):");
-  gerentes.forEach((g, i) => console.log(`    ${g.email} (${COMPANIES[i].name})`));
-  console.log("  Colaborador 1: colaborador@grupo.com / Colaborador123! (Constructora Andina)");
-  console.log("  Colaborador 2: colaborador2@grupo.com / Colaborador123! (Logística del Valle)");
+  console.log("  Por cada empresa (Gerente123! / Colaborador123!):");
+  COMPANIES.forEach((c, i) => {
+    console.log(`    ${c.name}: ${GERENTES[i].email} (gerente), ${COLABORADORES[i].email} (colaborador)`);
+  });
 }
 
 main()

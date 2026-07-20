@@ -54,3 +54,25 @@ export async function deleteStoredFile(storedName: string): Promise<void> {
     // file already gone; ignore
   }
 }
+
+const LOGOS_DIR = path.resolve(/* turbopackIgnore: true */ process.cwd(), "public/logos");
+
+export const ALLOWED_LOGO_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/svg+xml"]);
+export const MAX_LOGO_SIZE_BYTES = 3 * 1024 * 1024; // 3 MB
+
+export function isAllowedLogo(mimeType: string, size: number) {
+  return ALLOWED_LOGO_MIME_TYPES.has(mimeType) && size > 0 && size <= MAX_LOGO_SIZE_BYTES;
+}
+
+/** Saves a company logo to public/logos and returns the public path to store on the Company record. */
+export async function saveCompanyLogo(companyId: string, file: File): Promise<string> {
+  await mkdir(LOGOS_DIR, { recursive: true });
+
+  const ext = path.extname(file.name).slice(0, 10) || ".png";
+  const fileName = `${companyId}${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await writeFile(path.join(LOGOS_DIR, fileName), buffer);
+
+  return `/logos/${fileName}`;
+}

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAccess } from "@/lib/session";
+import { isAllowedLogo, saveCompanyLogo } from "@/lib/storage";
 
 type ActionResult = { error: string } | { success: true };
 
@@ -22,7 +23,19 @@ export async function createCompany(
   const exists = await prisma.company.findFirst({ where: { name } });
   if (exists) return { error: "Ya existe una empresa con ese nombre." };
 
-  await prisma.company.create({ data: { name } });
+  const logo = formData.get("logo");
+  let logoPath: string | null = null;
+
+  const company = await prisma.company.create({ data: { name } });
+
+  if (logo instanceof File && logo.size > 0) {
+    if (!isAllowedLogo(logo.type, logo.size)) {
+      return { error: "Logo no válido. Usa PNG, JPG, WEBP o SVG, máximo 3 MB." };
+    }
+    logoPath = await saveCompanyLogo(company.id, logo);
+    await prisma.company.update({ where: { id: company.id }, data: { logoPath } });
+  }
+
   revalidatePath("/admin/empresas");
   revalidatePath("/admin/usuarios");
   return { success: true };
