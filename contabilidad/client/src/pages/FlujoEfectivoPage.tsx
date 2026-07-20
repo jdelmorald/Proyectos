@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface FlujoEfectivo {
   operacion: number;
@@ -33,9 +34,27 @@ export default function FlujoEfectivoPage() {
         contrapartida en cada asiento.
       </p>
 
-      <div className="flex flex-wrap gap-3 mb-4">
-        <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
-        <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap gap-3">
+          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+        </div>
+        {datos && (
+          <BotonesExportar
+            empresa={empresa}
+            titulo="Flujo de Efectivo"
+            subtitulo={`Del ${desde} al ${hasta}`}
+            nombreArchivo="flujo-efectivo"
+            columnas={[{ header: 'Concepto', key: 'concepto' }, { header: 'Monto', key: 'monto', align: 'right' }]}
+            filas={[
+              { concepto: 'Efectivo generado (usado) en Operación', monto: datos.operacion },
+              { concepto: 'Efectivo generado (usado) en Inversión', monto: datos.inversion },
+              { concepto: 'Efectivo generado (usado) en Financiamiento', monto: datos.financiamiento },
+              ...(datos.sinClasificar !== 0 ? [{ concepto: 'Movimientos sin clasificar', monto: datos.sinClasificar }] : []),
+            ]}
+            filaTotales={{ concepto: 'Flujo de Efectivo Neto del periodo', monto: datos.flujoNeto }}
+          />
+        )}
       </div>
 
       {datos && (

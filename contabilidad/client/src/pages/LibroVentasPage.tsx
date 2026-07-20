@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Registro {
   id: number;
@@ -131,9 +132,32 @@ export default function LibroVentasPage() {
         </form>
       )}
 
-      <div className="flex gap-3 mb-3">
-        <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
-        <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div className="flex gap-3">
+          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+        </div>
+        <BotonesExportar
+          empresa={empresa}
+          titulo="Libro de Ventas"
+          subtitulo={desde || hasta ? `Del ${desde || '...'} al ${hasta || '...'}` : undefined}
+          nombreArchivo="libro-ventas"
+          columnas={[
+            { header: 'Fecha', key: 'fecha' },
+            { header: 'Factura', key: 'numero_factura' },
+            { header: 'Cliente', key: 'cliente_nombre' },
+            { header: 'RIF', key: 'cliente_rif' },
+            { header: 'Base', key: 'base_imponible', align: 'right' },
+            { header: 'Exento', key: 'exento', align: 'right' },
+            { header: 'IVA', key: 'iva_monto', align: 'right' },
+            { header: 'Total', key: 'total', align: 'right' },
+          ]}
+          filas={items}
+          filaTotales={{
+            fecha: '', numero_factura: '', cliente_nombre: 'Totales', cliente_rif: '',
+            base_imponible: totales.base, exento: totales.exento, iva_monto: totales.iva, total: totales.total,
+          }}
+        />
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Linea { id: number; codigo: string; nombre: string; saldo: number }
 
@@ -55,8 +56,36 @@ export default function BalanceGeneralPage() {
       <h1 className="text-2xl font-bold text-slate-800 mb-1">Balance General</h1>
       <p className="text-sm text-slate-500 mb-4">{empresa?.nombre} · al {hasta}</p>
 
-      <div className="mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+        {datos && (
+          <BotonesExportar
+            empresa={empresa}
+            titulo="Balance General"
+            subtitulo={`Al ${hasta}`}
+            nombreArchivo="balance-general"
+            columnas={[
+              { header: 'Sección', key: 'seccion' },
+              { header: 'Código', key: 'codigo' },
+              { header: 'Cuenta', key: 'nombre' },
+              { header: 'Saldo', key: 'saldo', align: 'right' },
+            ]}
+            filas={[
+              ...datos.activos.map((l) => ({ seccion: 'Activo', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+              { seccion: '', codigo: '', nombre: 'Total Activo', saldo: datos.totalActivo },
+              ...datos.pasivos.map((l) => ({ seccion: 'Pasivo', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+              { seccion: '', codigo: '', nombre: 'Total Pasivo', saldo: datos.totalPasivo },
+              ...datos.patrimonio.map((l) => ({ seccion: 'Patrimonio', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+              { seccion: 'Patrimonio', codigo: '', nombre: 'Utilidad del ejercicio', saldo: datos.utilidadEjercicio },
+              { seccion: '', codigo: '', nombre: 'Total Patrimonio', saldo: datos.totalPatrimonio },
+            ]}
+            filaTotales={{
+              seccion: '', codigo: '',
+              nombre: datos.cuadra ? 'Total Pasivo + Patrimonio (cuadra ✓)' : 'Total Pasivo + Patrimonio (NO cuadra)',
+              saldo: datos.totalPasivoMasPatrimonio,
+            }}
+          />
+        )}
       </div>
 
       {datos && (

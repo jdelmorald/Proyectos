@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Cuenta {
   id: number;
@@ -19,7 +20,7 @@ interface Movimiento {
 }
 
 export default function LibroMayorPage() {
-  const { empresaId } = useEmpresa();
+  const { empresaId, empresa } = useEmpresa();
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
   const [cuentaId, setCuentaId] = useState<number | ''>('');
   const [desde, setDesde] = useState('');
@@ -56,9 +57,27 @@ export default function LibroMayorPage() {
 
       {datos && (
         <>
-          <div className="mb-3 text-sm text-slate-600">
-            <span className="font-semibold">{datos.cuenta.codigo} — {datos.cuenta.nombre}</span>
-            <span className="ml-2 text-slate-400">({datos.cuenta.naturaleza})</span>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-slate-600">
+              <span className="font-semibold">{datos.cuenta.codigo} — {datos.cuenta.nombre}</span>
+              <span className="ml-2 text-slate-400">({datos.cuenta.naturaleza})</span>
+            </div>
+            <BotonesExportar
+              empresa={empresa}
+              titulo={`Libro Mayor — ${datos.cuenta.codigo} ${datos.cuenta.nombre}`}
+              subtitulo={desde || hasta ? `Del ${desde || '...'} al ${hasta || '...'}` : undefined}
+              nombreArchivo={`libro-mayor-${datos.cuenta.codigo}`}
+              columnas={[
+                { header: 'N° Asiento', key: 'numero' },
+                { header: 'Fecha', key: 'fecha' },
+                { header: 'Descripción', key: 'descripcion' },
+                { header: 'Debe', key: 'debe', align: 'right' },
+                { header: 'Haber', key: 'haber', align: 'right' },
+                { header: 'Saldo', key: 'saldo', align: 'right' },
+              ]}
+              filas={datos.movimientos}
+              filaTotales={{ numero: '', fecha: '', descripcion: 'Saldo final', saldo: datos.saldoFinal }}
+            />
           </div>
           <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">
             <table className="w-full text-sm">

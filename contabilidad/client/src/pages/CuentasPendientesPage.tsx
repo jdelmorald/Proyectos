@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface CuentaPendiente {
   id: number;
@@ -107,8 +108,26 @@ export default function CuentasPendientesPage() {
             Cuentas por Pagar
           </button>
         </div>
-        <div className="text-sm text-slate-500">
-          Total pendiente: <span className="font-bold text-brand-900">{moneda} {totalPendiente.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</span>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-slate-500">
+            Total pendiente: <span className="font-bold text-brand-900">{moneda} {totalPendiente.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</span>
+          </div>
+          <BotonesExportar
+            empresa={empresa}
+            titulo={tab === 'cxc' ? 'Cuentas por Cobrar' : 'Cuentas por Pagar'}
+            nombreArchivo={tab === 'cxc' ? 'cuentas-por-cobrar' : 'cuentas-por-pagar'}
+            columnas={[
+              { header: tab === 'cxc' ? 'Cliente' : 'Proveedor', key: 'terceroNombre' },
+              { header: 'Asiento', key: 'asientoNumero' },
+              { header: 'Emisión', key: 'fechaEmision' },
+              { header: 'Vencimiento', key: 'fechaVencimiento' },
+              { header: 'Monto Original', key: 'montoOriginal', align: 'right' },
+              { header: 'Saldo Pendiente', key: 'saldoPendiente', align: 'right' },
+              { header: 'Estado', key: 'estadoLabel' },
+            ]}
+            filas={items.map((i) => ({ ...i, fechaVencimiento: i.fechaVencimiento || '—', estadoLabel: ESTADO_LABEL[i.estado] }))}
+            filaTotales={{ terceroNombre: 'Total pendiente', saldoPendiente: totalPendiente }}
+          />
         </div>
       </div>
 

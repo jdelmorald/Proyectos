@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Cuenta {
   id: number;
@@ -51,7 +52,7 @@ const LINEA_VACIA: LineaForm = {
 export default function AsientoFormPage() {
   const { id } = useParams<{ id?: string }>();
   const esNuevo = !id;
-  const { empresaId } = useEmpresa();
+  const { empresaId, empresa } = useEmpresa();
   const navigate = useNavigate();
 
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
@@ -178,6 +179,27 @@ export default function AsientoFormPage() {
             <div className="text-sm text-slate-500">{asiento.fecha} · {asiento.descripcion}</div>
           </div>
           <div className="flex items-center gap-3">
+            <BotonesExportar
+              empresa={empresa}
+              titulo={`Comprobante de Asiento ${asiento.numero}`}
+              subtitulo={`Fecha: ${asiento.fecha}${asiento.descripcion ? ' · ' + asiento.descripcion : ''}${asiento.estado === 'anulado' ? ' · ANULADO' : ''}`}
+              nombreArchivo={`asiento-${asiento.numero}`}
+              columnas={[
+                { header: 'Cuenta', key: 'cuenta' },
+                { header: 'Tercero / C. Costo', key: 'detalle' },
+                { header: 'Descripción', key: 'descripcion' },
+                { header: 'Debe', key: 'debe', align: 'right' },
+                { header: 'Haber', key: 'haber', align: 'right' },
+              ]}
+              filas={asiento.lineas.map((l) => ({
+                cuenta: `${l.cuentaCodigo} — ${l.cuentaNombre}`,
+                detalle: [l.terceroNombre, l.centroCostoNombre].filter(Boolean).join(' · '),
+                descripcion: l.descripcion || '',
+                debe: l.debe,
+                haber: l.haber,
+              }))}
+              filaTotales={{ cuenta: '', detalle: '', descripcion: 'Totales', debe: totDebe, haber: totHaber }}
+            />
             <Link to="/asientos" className="text-sm text-slate-500 hover:underline">← Volver al listado</Link>
             {asiento.estado === 'registrado' && (
               <button onClick={onAnular} className="text-red-600 hover:underline text-sm">Anular asiento</button>

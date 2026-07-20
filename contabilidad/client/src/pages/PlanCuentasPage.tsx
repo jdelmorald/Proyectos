@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Cuenta {
   id: number;
@@ -28,7 +29,7 @@ const VACIO = {
 };
 
 export default function PlanCuentasPage() {
-  const { empresaId } = useEmpresa();
+  const { empresaId, empresa } = useEmpresa();
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
   const [form, setForm] = useState(VACIO);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -84,12 +85,33 @@ export default function PlanCuentasPage() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-slate-800">Plan de Cuentas</h1>
-        <button
-          onClick={() => setMostrarForm((v) => !v)}
-          className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-        >
-          {mostrarForm ? 'Cancelar' : '+ Nueva cuenta'}
-        </button>
+        <div className="flex items-center gap-3">
+          <BotonesExportar
+            empresa={empresa}
+            titulo="Plan de Cuentas"
+            nombreArchivo="plan-de-cuentas"
+            columnas={[
+              { header: 'Código', key: 'codigo' },
+              { header: 'Nombre', key: 'nombre' },
+              { header: 'Tipo', key: 'tipo' },
+              { header: 'Naturaleza', key: 'naturaleza' },
+              { header: 'Detalle', key: 'detalle' },
+            ]}
+            filas={cuentas.map((c) => ({
+              codigo: c.codigo,
+              nombre: c.nombre,
+              tipo: TIPO_LABEL[c.tipo],
+              naturaleza: c.naturaleza,
+              detalle: c.permite_movimiento ? 'Movimiento' : 'Agrupación',
+            }))}
+          />
+          <button
+            onClick={() => setMostrarForm((v) => !v)}
+            className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+          >
+            {mostrarForm ? 'Cancelar' : '+ Nueva cuenta'}
+          </button>
+        </div>
       </div>
 
       {mostrarForm && (

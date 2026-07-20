@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Asiento {
   id: number;
@@ -14,7 +15,7 @@ interface Asiento {
 }
 
 export default function AsientosListPage() {
-  const { empresaId } = useEmpresa();
+  const { empresaId, empresa } = useEmpresa();
   const [items, setItems] = useState<Asiento[]>([]);
   const [q, setQ] = useState('');
   const [desde, setDesde] = useState('');
@@ -49,10 +50,32 @@ export default function AsientosListPage() {
         </Link>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-3">
-        <input placeholder="Buscar por número o descripción..." value={q} onChange={(e) => setQ(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2 w-full max-w-xs" />
-        <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
-        <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div className="flex flex-wrap gap-3">
+          <input placeholder="Buscar por número o descripción..." value={q} onChange={(e) => setQ(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2 w-full max-w-xs" />
+          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+        </div>
+        <BotonesExportar
+          empresa={empresa}
+          titulo="Libro Diario"
+          subtitulo={desde || hasta ? `Del ${desde || '...'} al ${hasta || '...'}` : undefined}
+          nombreArchivo="libro-diario"
+          columnas={[
+            { header: 'N°', key: 'numero' },
+            { header: 'Fecha', key: 'fecha' },
+            { header: 'Descripción', key: 'descripcion' },
+            { header: 'Monto', key: 'monto', align: 'right' },
+            { header: 'Estado', key: 'estado' },
+          ]}
+          filas={items.map((a) => ({
+            numero: a.numero,
+            fecha: a.fecha,
+            descripcion: a.descripcion || '',
+            monto: a.lineas.reduce((s, l) => s + l.debe, 0),
+            estado: a.estado,
+          }))}
+        />
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">

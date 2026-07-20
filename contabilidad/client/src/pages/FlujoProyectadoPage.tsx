@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Registro {
   id: number;
@@ -99,7 +100,22 @@ export default function FlujoProyectadoPage() {
         </form>
       )}
 
-      <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500 mb-2">Resumen por periodo</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Resumen por periodo</h2>
+        <BotonesExportar
+          empresa={empresa}
+          titulo="Flujo de Caja Proyectado — Resumen por periodo"
+          nombreArchivo="flujo-proyectado-resumen"
+          columnas={[
+            { header: 'Periodo', key: 'periodo' },
+            { header: 'Ingresos', key: 'ingresos', align: 'right' },
+            { header: 'Egresos', key: 'egresos', align: 'right' },
+            { header: 'Neto', key: 'neto', align: 'right' },
+            { header: 'Acumulado', key: 'acumulado', align: 'right' },
+          ]}
+          filas={resumen}
+        />
+      </div>
       <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto mb-6">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-500 text-left">
@@ -126,7 +142,21 @@ export default function FlujoProyectadoPage() {
         </table>
       </div>
 
-      <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500 mb-2">Detalle de conceptos</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Detalle de conceptos</h2>
+        <BotonesExportar
+          empresa={empresa}
+          titulo="Flujo de Caja Proyectado — Detalle de conceptos"
+          nombreArchivo="flujo-proyectado-detalle"
+          columnas={[
+            { header: 'Periodo', key: 'periodo' },
+            { header: 'Categoría', key: 'categoria' },
+            { header: 'Concepto', key: 'concepto' },
+            { header: 'Monto', key: 'monto_proyectado', align: 'right' },
+          ]}
+          filas={items}
+        />
+      </div>
       <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-500 text-left">

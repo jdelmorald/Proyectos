@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import BotonesExportar from '../components/BotonesExportar';
 
 interface Linea { id: number; codigo: string; nombre: string; saldo: number }
 
@@ -58,9 +59,35 @@ export default function EstadoResultadosPage() {
       <h1 className="text-2xl font-bold text-slate-800 mb-1">Estado de Resultados</h1>
       <p className="text-sm text-slate-500 mb-4">{empresa?.nombre} · del {desde} al {hasta}</p>
 
-      <div className="flex flex-wrap gap-3 mb-4">
-        <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
-        <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap gap-3">
+          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
+        </div>
+        {datos && (
+          <BotonesExportar
+            empresa={empresa}
+            titulo="Estado de Resultados"
+            subtitulo={`Del ${desde} al ${hasta}`}
+            nombreArchivo="estado-resultados"
+            columnas={[
+              { header: 'Sección', key: 'seccion' },
+              { header: 'Código', key: 'codigo' },
+              { header: 'Cuenta', key: 'nombre' },
+              { header: 'Monto', key: 'saldo', align: 'right' },
+            ]}
+            filas={[
+              ...datos.ingresos.map((l) => ({ seccion: 'Ingresos', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+              { seccion: '', codigo: '', nombre: 'Total Ingresos', saldo: datos.totalIngresos },
+              ...datos.costos.map((l) => ({ seccion: 'Costos', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+              { seccion: '', codigo: '', nombre: 'Total Costos', saldo: datos.totalCostos },
+              { seccion: '', codigo: '', nombre: 'Utilidad Bruta', saldo: datos.utilidadBruta },
+              ...datos.gastos.map((l) => ({ seccion: 'Gastos', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+              { seccion: '', codigo: '', nombre: 'Total Gastos', saldo: datos.totalGastos },
+            ]}
+            filaTotales={{ seccion: '', codigo: '', nombre: 'Utilidad Neta del Ejercicio', saldo: datos.utilidadNeta }}
+          />
+        )}
       </div>
 
       {datos && (
