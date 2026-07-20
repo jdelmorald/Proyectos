@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { isAdminRole } from "@/lib/roles";
 
 export async function getCurrentUser() {
   const session = await getServerSession(authOptions);
@@ -13,8 +14,9 @@ export async function requireUser() {
   return user;
 }
 
-export async function requireDirector() {
+/** ADMINISTRADOR or DIRECTOR: manage companies/users and see every submission. */
+export async function requireAdminAccess() {
   const user = await requireUser();
-  if (user.role !== "DIRECTOR") redirect("/dashboard");
+  if (!isAdminRole(user.role)) redirect("/dashboard");
   return user;
 }

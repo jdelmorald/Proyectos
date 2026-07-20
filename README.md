@@ -7,24 +7,39 @@ historial completo de cada intercambio hasta la aprobación final.
 
 ## Cómo funciona
 
-- **Roles**: `DIRECTOR` (el jefe, revisa todo el grupo) y `COLABORADOR`
-  (sube documentos de su propia empresa).
-- **Flujo de un documento**:
+- **Roles**:
+  - `ADMINISTRADOR` — administra empresas y usuarios, y ve todos los
+    documentos del grupo, pero no participa en las aprobaciones.
+  - `DIRECTOR` — el director general. Ve y puede aprobar, objetar o
+    rechazar cualquier documento de cualquier empresa, en cualquier etapa.
+    Es quien da la aprobación final.
+  - `GERENTE` — un gerente por empresa. Ve y puede aprobar, objetar o
+    rechazar únicamente los documentos de los colaboradores de **su propia
+    empresa**. Su aprobación no es definitiva: reenvía el documento a
+    Dirección General para la decisión final.
+  - `COLABORADOR` — sube documentos y solo ve los suyos.
+- **Flujo de un documento** (dos etapas: gerente → director):
   1. El colaborador sube un archivo → estado `ENVIADO`.
-  2. El director lo revisa desde su panel y puede:
-     - **Aprobar** → estado `APROBADO` (cierra el ciclo).
-     - **Objetar** (con comentario obligatorio) → estado `OBJETADO`, vuelve
-       al colaborador.
-     - **Rechazar** definitivamente (con comentario) → estado `RECHAZADO`
-       (cierra el ciclo, sin reenvío).
-  3. Si fue objetado, el colaborador corrige y **reenvía una nueva versión**
-     del archivo → vuelve a `ENVIADO`, y el ciclo se repite.
-  4. Cada acción (enviar, objetar, reenviar, aprobar, rechazar) queda
-     registrada en un **historial cronológico** visible para ambas partes,
-     junto con todas las versiones del archivo.
-- El director también administra las **empresas del grupo** y crea las
-  **cuentas de los colaboradores** (cada uno ve solo sus propios documentos;
-  el director ve los de todas las empresas).
+  2. El gerente de su empresa lo revisa y puede:
+     - **Aprobar y enviar a Dirección General** → estado
+       `EN_REVISION_DIRECCION`.
+     - **Objetar** (comentario obligatorio) → estado `OBJETADO`, vuelve al
+       colaborador.
+     - **Rechazar** definitivamente → estado `RECHAZADO` (cierra el ciclo).
+  3. El director general puede actuar en cualquier momento — ya sea sobre un
+     documento recién `ENVIADO` (si aún no lo vio el gerente, o si la
+     empresa no tiene gerente asignado) o uno que ya está
+     `EN_REVISION_DIRECCION` — y decide igual: **Aprobar** (estado final
+     `APROBADO`), **Objetar** o **Rechazar**.
+  4. Si fue objetado (por el gerente o por el director), el colaborador
+     corrige y **reenvía una nueva versión** → vuelve a `ENVIADO`, y el
+     ciclo empieza de nuevo desde el gerente.
+  5. Cada acción queda registrada en un **historial cronológico** con
+     autor, fecha y comentario, visible para todos los que tienen acceso a
+     ese documento.
+- El administrador (o el director) crean las **empresas** y las
+  **cuentas de usuario** (colaborador, gerente, director o administrador)
+  desde `/admin`.
 
 ## Stack técnico
 
@@ -48,14 +63,22 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 ### Cuentas de ejemplo (creadas por el seed)
 
+El seed crea 5 empresas de ejemplo, cada una con su propio gerente:
+
 | Rol | Correo | Contraseña |
 |---|---|---|
+| Administrador de plataforma | `admin@grupo.com` | `Administrador123!` |
 | Director general | `director@grupo.com` | `Director123!` |
+| Gerente — Constructora Andina | `gerente.andina@grupo.com` | `Gerente123!` |
+| Gerente — Logística del Valle | `gerente.valle@grupo.com` | `Gerente123!` |
+| Gerente — Agroindustrial del Norte | `gerente.norte@grupo.com` | `Gerente123!` |
+| Gerente — Textiles del Pacífico | `gerente.pacifico@grupo.com` | `Gerente123!` |
+| Gerente — Inversiones Río Grande | `gerente.riogrande@grupo.com` | `Gerente123!` |
 | Colaborador (Constructora Andina) | `colaborador@grupo.com` | `Colaborador123!` |
 | Colaborador (Logística del Valle) | `colaborador2@grupo.com` | `Colaborador123!` |
 
 **Cambia estas contraseñas antes de usar la plataforma en producción.** El
-director es quien crea el resto de las cuentas de colaboradores desde
+administrador o el director crean el resto de las cuentas desde
 `/admin/usuarios` (no hay registro público).
 
 ## Generar un `NEXTAUTH_SECRET`
@@ -84,11 +107,12 @@ openssl rand -base64 32
 
 ```
 prisma/schema.prisma          Modelo de datos (empresas, usuarios, documentos, versiones, historial)
-src/lib/auth.ts               Configuración de NextAuth (credenciales)
-src/lib/actions/submissions.ts  Lógica del flujo de revisión (server actions)
-src/lib/actions/admin.ts        Gestión de empresas y colaboradores (solo director)
+src/lib/roles.ts               Roles, etiquetas y reglas de visibilidad compartidas
+src/lib/auth.ts                Configuración de NextAuth (credenciales)
+src/lib/actions/submissions.ts  Lógica del flujo de revisión en dos etapas (server actions)
+src/lib/actions/admin.ts        Gestión de empresas y usuarios (administrador/director)
 src/lib/storage.ts             Guardado/lectura de archivos subidos
-src/app/(app)/dashboard         Panel principal (distinto por rol)
+src/app/(app)/dashboard         Panel principal (alcance distinto por rol)
 src/app/(app)/submissions/[id]  Detalle de un documento: versión, acciones, historial
-src/app/(app)/admin             Gestión de empresas y usuarios (solo director)
+src/app/(app)/admin             Gestión de empresas y usuarios (administrador/director)
 ```

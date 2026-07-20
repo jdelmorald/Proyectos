@@ -3,10 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DOCUMENT_TYPE_LABELS } from "@/lib/validation";
+import { canReviewSubmissions } from "@/lib/roles";
+import type { Prisma } from "@/generated/prisma";
 
 const FILTERS = [
   { value: "", label: "Todos" },
   { value: "ENVIADO", label: "Pendientes" },
+  { value: "EN_REVISION_DIRECCION", label: "En Dirección" },
   { value: "OBJETADO", label: "Objetados" },
   { value: "APROBADO", label: "Aprobados" },
   { value: "RECHAZADO", label: "Rechazados" },
@@ -20,15 +23,16 @@ export default async function DashboardPage({
   const user = await requireUser();
   const { status } = await searchParams;
 
-  const where =
-    user.role === "DIRECTOR"
-      ? status
-        ? { status: status as never }
-        : {}
-      : {
-          authorId: user.id,
-          ...(status ? { status: status as never } : {}),
-        };
+  const statusFilter = status ? { status: status as never } : {};
+  const showCompanyColumn = user.role === "ADMINISTRADOR" || user.role === "DIRECTOR";
+  const showAuthorColumn = user.role !== "COLABORADOR";
+
+  let where: Prisma.SubmissionWhereInput = statusFilter;
+  if (user.role === "GERENTE") {
+    where = { companyId: user.companyId ?? "__none__", ...statusFilter };
+  } else if (user.role === "COLABORADOR") {
+    where = { authorId: user.id, ...statusFilter };
+  }
 
   const submissions = await prisma.submission.findMany({
     where,
@@ -36,25 +40,43 @@ export default async function DashboardPage({
     include: { company: true, author: true },
   });
 
-  const pendingCount = await prisma.submission.count({
-    where:
-      user.role === "DIRECTOR"
-        ? { status: "ENVIADO" }
-        : { authorId: user.id, status: "OBJETADO" },
-  });
+  let pendingCount = 0;
+  if (user.role === "DIRECTOR") {
+    pendingCount = await prisma.submission.count({
+      where: { status: { in: ["ENVIADO", "EN_REVISION_DIRECCION"] } },
+    });
+  } else if (user.role === "GERENTE") {
+    pendingCount = await prisma.submission.count({
+      where: { companyId: user.companyId ?? "__none__", status: "ENVIADO" },
+    });
+  } else if (user.role === "COLABORADOR") {
+    pendingCount = await prisma.submission.count({
+      where: { authorId: user.id, status: "OBJETADO" },
+    });
+  }
+
+  const title =
+    user.role === "ADMINISTRADOR"
+      ? "Todos los documentos"
+      : user.role === "DIRECTOR"
+        ? "Documentos por revisar"
+        : user.role === "GERENTE"
+          ? "Documentos de mi empresa"
+          : "Mis documentos";
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">
-            {user.role === "DIRECTOR" ? "Documentos por revisar" : "Mis documentos"}
-          </h1>
-          {pendingCount > 0 && (
+          <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+          {pendingCount > 0 && canReviewSubmissions(user.role) && (
             <p className="text-sm text-amber-700 mt-1">
-              {user.role === "DIRECTOR"
-                ? `${pendingCount} documento(s) esperando tu revisión`
-                : `${pendingCount} documento(s) objetados esperan corrección`}
+              {pendingCount} documento(s) esperando tu revisión
+            </p>
+          )}
+          {pendingCount > 0 && user.role === "COLABORADOR" && (
+            <p className="text-sm text-amber-700 mt-1">
+              {pendingCount} documento(s) objetados esperan corrección
             </p>
           )}
         </div>
@@ -93,12 +115,8 @@ export default async function DashboardPage({
               <tr>
                 <th className="text-left font-medium px-4 py-2">Título</th>
                 <th className="text-left font-medium px-4 py-2">Tipo</th>
-                {user.role === "DIRECTOR" && (
-                  <>
-                    <th className="text-left font-medium px-4 py-2">Empresa</th>
-                    <th className="text-left font-medium px-4 py-2">Emisor</th>
-                  </>
-                )}
+                {showCompanyColumn && <th className="text-left font-medium px-4 py-2">Empresa</th>}
+                {showAuthorColumn && <th className="text-left font-medium px-4 py-2">Emisor</th>}
                 <th className="text-left font-medium px-4 py-2">Estado</th>
                 <th className="text-left font-medium px-4 py-2">Actualizado</th>
               </tr>
@@ -112,11 +130,11 @@ export default async function DashboardPage({
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{DOCUMENT_TYPE_LABELS[s.type]}</td>
-                  {user.role === "DIRECTOR" && (
-                    <>
-                      <td className="px-4 py-3 text-slate-600">{s.company.name}</td>
-                      <td className="px-4 py-3 text-slate-600">{s.author.name}</td>
-                    </>
+                  {showCompanyColumn && (
+                    <td className="px-4 py-3 text-slate-600">{s.company.name}</td>
+                  )}
+                  {showAuthorColumn && (
+                    <td className="px-4 py-3 text-slate-600">{s.author.name}</td>
                   )}
                   <td className="px-4 py-3">
                     <StatusBadge status={s.status} />

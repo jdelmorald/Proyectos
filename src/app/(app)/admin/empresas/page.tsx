@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { requireDirector } from "@/lib/session";
+import { requireAdminAccess } from "@/lib/session";
 import { CompanyForm } from "@/components/CompanyForm";
 
 export default async function EmpresasPage() {
-  await requireDirector();
+  await requireAdminAccess();
 
   const companies = await prisma.company.findMany({
     orderBy: { name: "asc" },

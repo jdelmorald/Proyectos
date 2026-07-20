@@ -1,14 +1,32 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { approveSubmission, objectSubmission, rejectSubmission } from "@/lib/actions/submissions";
+import {
+  approveSubmission,
+  gerenteApproveSubmission,
+  objectSubmission,
+  rejectSubmission,
+} from "@/lib/actions/submissions";
 
 const initialState = null;
 
-export function ReviewActions({ submissionId }: { submissionId: string }) {
-  const [mode, setMode] = useState<"none" | "object" | "reject">("none");
+type ReviewMode = "director" | "gerente";
 
-  const [approveState, approveAction, approvePending] = useActionState(approveSubmission, initialState);
+export function ReviewActions({
+  submissionId,
+  mode,
+}: {
+  submissionId: string;
+  mode: ReviewMode;
+}) {
+  const [panel, setPanel] = useState<"none" | "object" | "reject">("none");
+
+  const approveFn = mode === "gerente" ? gerenteApproveSubmission : approveSubmission;
+  const approveLabel =
+    mode === "gerente" ? "Aprobar y enviar a Dirección General" : "Aprobar";
+  const approvingLabel = mode === "gerente" ? "Enviando..." : "Aprobando...";
+
+  const [approveState, approveAction, approvePending] = useActionState(approveFn, initialState);
   const [objectState, objectAction, objectPending] = useActionState(objectSubmission, initialState);
   const [rejectState, rejectAction, rejectPending] = useActionState(rejectSubmission, initialState);
 
@@ -16,7 +34,7 @@ export function ReviewActions({ submissionId }: { submissionId: string }) {
     <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
       <h2 className="text-sm font-semibold text-slate-900">Tu decisión</h2>
 
-      {mode === "none" && (
+      {panel === "none" && (
         <div className="flex flex-wrap gap-2">
           <form action={approveAction}>
             <input type="hidden" name="submissionId" value={submissionId} />
@@ -25,17 +43,17 @@ export function ReviewActions({ submissionId }: { submissionId: string }) {
               disabled={approvePending}
               className="rounded-md bg-green-700 text-white text-sm font-medium px-4 py-2 hover:bg-green-800 disabled:opacity-50"
             >
-              {approvePending ? "Aprobando..." : "Aprobar"}
+              {approvePending ? approvingLabel : approveLabel}
             </button>
           </form>
           <button
-            onClick={() => setMode("object")}
+            onClick={() => setPanel("object")}
             className="rounded-md border border-amber-300 text-amber-800 text-sm font-medium px-4 py-2 hover:bg-amber-50"
           >
             Objetar
           </button>
           <button
-            onClick={() => setMode("reject")}
+            onClick={() => setPanel("reject")}
             className="rounded-md border border-red-300 text-red-700 text-sm font-medium px-4 py-2 hover:bg-red-50"
           >
             Rechazar
@@ -43,7 +61,7 @@ export function ReviewActions({ submissionId }: { submissionId: string }) {
         </div>
       )}
 
-      {mode === "object" && (
+      {panel === "object" && (
         <form action={objectAction} className="space-y-2">
           <input type="hidden" name="submissionId" value={submissionId} />
           <label className="block text-sm font-medium text-slate-700">
@@ -66,7 +84,7 @@ export function ReviewActions({ submissionId }: { submissionId: string }) {
             </button>
             <button
               type="button"
-              onClick={() => setMode("none")}
+              onClick={() => setPanel("none")}
               className="text-sm text-slate-500 px-2"
             >
               Cancelar
@@ -75,7 +93,7 @@ export function ReviewActions({ submissionId }: { submissionId: string }) {
         </form>
       )}
 
-      {mode === "reject" && (
+      {panel === "reject" && (
         <form action={rejectAction} className="space-y-2">
           <input type="hidden" name="submissionId" value={submissionId} />
           <label className="block text-sm font-medium text-slate-700">
@@ -98,7 +116,7 @@ export function ReviewActions({ submissionId }: { submissionId: string }) {
             </button>
             <button
               type="button"
-              onClick={() => setMode("none")}
+              onClick={() => setPanel("none")}
               className="text-sm text-slate-500 px-2"
             >
               Cancelar

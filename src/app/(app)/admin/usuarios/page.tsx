@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { requireDirector } from "@/lib/session";
-import { ColaboradorForm } from "@/components/ColaboradorForm";
+import { requireAdminAccess } from "@/lib/session";
+import { CreateUserForm } from "@/components/CreateUserForm";
 import { ToggleUserButton } from "@/components/ToggleUserButton";
+import { ROLE_LABELS } from "@/lib/roles";
 
 export default async function UsuariosPage() {
-  const director = await requireDirector();
+  const currentUser = await requireAdminAccess();
 
   const [users, companies] = await Promise.all([
     prisma.user.findMany({ orderBy: { createdAt: "asc" }, include: { company: true } }),
@@ -17,10 +18,10 @@ export default async function UsuariosPage() {
 
       {companies.length === 0 ? (
         <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
-          Primero crea una empresa en la sección Empresas antes de invitar colaboradores.
+          Primero crea una empresa en la sección Empresas antes de invitar colaboradores o gerentes.
         </p>
       ) : (
-        <ColaboradorForm companies={companies.map((c) => ({ id: c.id, name: c.name }))} />
+        <CreateUserForm companies={companies.map((c) => ({ id: c.id, name: c.name }))} />
       )}
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -40,9 +41,7 @@ export default async function UsuariosPage() {
               <tr key={u.id} className="border-t border-slate-100">
                 <td className="px-4 py-3 font-medium text-slate-900">{u.name}</td>
                 <td className="px-4 py-3 text-slate-600">{u.email}</td>
-                <td className="px-4 py-3 text-slate-600">
-                  {u.role === "DIRECTOR" ? "Director general" : "Colaborador"}
-                </td>
+                <td className="px-4 py-3 text-slate-600">{ROLE_LABELS[u.role]}</td>
                 <td className="px-4 py-3 text-slate-600">{u.company?.name ?? "—"}</td>
                 <td className="px-4 py-3">
                   <span
@@ -56,9 +55,7 @@ export default async function UsuariosPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  {u.id !== director.id && u.role === "COLABORADOR" && (
-                    <ToggleUserButton userId={u.id} active={u.active} />
-                  )}
+                  {u.id !== currentUser.id && <ToggleUserButton userId={u.id} active={u.active} />}
                 </td>
               </tr>
             ))}

@@ -81,12 +81,62 @@ export async function createSubmission(
   redirect(`/submissions/${submission.id}`);
 }
 
+/** Can this user object/approve-forward/reject the submission at its current status? */
+function getReviewPermission(
+  user: { role: string; companyId: string | null },
+  submission: { status: string; companyId: string }
+) {
+  if (user.role === "DIRECTOR") {
+    return submission.status === "ENVIADO" || submission.status === "EN_REVISION_DIRECCION";
+  }
+  if (user.role === "GERENTE") {
+    return submission.status === "ENVIADO" && submission.companyId === user.companyId;
+  }
+  return false;
+}
+
+export async function gerenteApproveSubmission(
+  _prevState: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const user = await requireUser();
+  if (user.role !== "GERENTE") return { error: "No autorizado." };
+
+  const submissionId = String(formData.get("submissionId") ?? "");
+  const comment = String(formData.get("comment") ?? "").trim();
+
+  const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
+  if (!submission) return { error: "Documento no encontrado." };
+  if (submission.companyId !== user.companyId) return { error: "No autorizado." };
+  if (submission.status !== "ENVIADO") {
+    return { error: "Solo se pueden aprobar documentos pendientes de revisión." };
+  }
+
+  await prisma.$transaction([
+    prisma.submission.update({
+      where: { id: submissionId },
+      data: { status: "EN_REVISION_DIRECCION" },
+    }),
+    prisma.historyEvent.create({
+      data: {
+        submissionId,
+        actorId: user.id,
+        action: "APROBADO_GERENTE",
+        comment: comment || null,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/submissions/${submissionId}`);
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function objectSubmission(
   _prevState: ActionResult | null,
   formData: FormData
 ): Promise<ActionResult> {
   const user = await requireUser();
-  if (user.role !== "DIRECTOR") return { error: "No autorizado." };
 
   const submissionId = String(formData.get("submissionId") ?? "");
   const comment = String(formData.get("comment") ?? "").trim();
@@ -95,9 +145,7 @@ export async function objectSubmission(
 
   const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
   if (!submission) return { error: "Documento no encontrado." };
-  if (submission.status !== "ENVIADO") {
-    return { error: "Solo se pueden objetar documentos pendientes de revisión." };
-  }
+  if (!getReviewPermission(user, submission)) return { error: "No autorizado." };
 
   await prisma.$transaction([
     prisma.submission.update({
@@ -131,7 +179,7 @@ export async function approveSubmission(
 
   const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
   if (!submission) return { error: "Documento no encontrado." };
-  if (submission.status !== "ENVIADO") {
+  if (!getReviewPermission(user, submission)) {
     return { error: "Solo se pueden aprobar documentos pendientes de revisión." };
   }
 
@@ -160,7 +208,6 @@ export async function rejectSubmission(
   formData: FormData
 ): Promise<ActionResult> {
   const user = await requireUser();
-  if (user.role !== "DIRECTOR") return { error: "No autorizado." };
 
   const submissionId = String(formData.get("submissionId") ?? "");
   const comment = String(formData.get("comment") ?? "").trim();
@@ -169,9 +216,7 @@ export async function rejectSubmission(
 
   const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
   if (!submission) return { error: "Documento no encontrado." };
-  if (submission.status === "APROBADO" || submission.status === "RECHAZADO") {
-    return { error: "Este documento ya se encuentra cerrado." };
-  }
+  if (!getReviewPermission(user, submission)) return { error: "No autorizado." };
 
   await prisma.$transaction([
     prisma.submission.update({

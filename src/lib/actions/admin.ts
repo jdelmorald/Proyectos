@@ -3,15 +3,18 @@
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireDirector } from "@/lib/session";
+import { requireAdminAccess } from "@/lib/session";
 
 type ActionResult = { error: string } | { success: true };
+
+const ASSIGNABLE_ROLES = ["ADMINISTRADOR", "DIRECTOR", "GERENTE", "COLABORADOR"] as const;
+const ROLES_REQUIRING_COMPANY = new Set(["GERENTE", "COLABORADOR"]);
 
 export async function createCompany(
   _prevState: ActionResult | null,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireDirector();
+  await requireAdminAccess();
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "El nombre de la empresa es obligatorio." };
@@ -25,29 +28,40 @@ export async function createCompany(
   return { success: true };
 }
 
-export async function createColaborador(
+export async function createUser(
   _prevState: ActionResult | null,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireDirector();
+  await requireAdminAccess();
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const role = String(formData.get("role") ?? "COLABORADOR");
   const companyId = String(formData.get("companyId") ?? "");
 
-  if (!name || !email || !password || !companyId) {
-    return { error: "Todos los campos son obligatorios." };
+  if (!name || !email || !password) {
+    return { error: "Nombre, correo y contraseña son obligatorios." };
+  }
+  if (!ASSIGNABLE_ROLES.includes(role as (typeof ASSIGNABLE_ROLES)[number])) {
+    return { error: "Rol inválido." };
   }
   if (password.length < 8) {
     return { error: "La contraseña debe tener al menos 8 caracteres." };
   }
 
+  const needsCompany = ROLES_REQUIRING_COMPANY.has(role);
+  if (needsCompany && !companyId) {
+    return { error: "Este rol requiere asignar una empresa." };
+  }
+
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) return { error: "Ya existe un usuario con ese correo." };
 
-  const company = await prisma.company.findUnique({ where: { id: companyId } });
-  if (!company) return { error: "Empresa inválida." };
+  if (needsCompany) {
+    const company = await prisma.company.findUnique({ where: { id: companyId } });
+    if (!company) return { error: "Empresa inválida." };
+  }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
@@ -56,8 +70,8 @@ export async function createColaborador(
       name,
       email,
       passwordHash,
-      role: "COLABORADOR",
-      companyId,
+      role: role as (typeof ASSIGNABLE_ROLES)[number],
+      companyId: needsCompany ? companyId : null,
     },
   });
 
@@ -69,10 +83,10 @@ export async function toggleUserActive(
   _prevState: ActionResult | null,
   formData: FormData
 ): Promise<ActionResult> {
-  const director = await requireDirector();
+  const admin = await requireAdminAccess();
 
   const userId = String(formData.get("userId") ?? "");
-  if (userId === director.id) {
+  if (userId === admin.id) {
     return { error: "No puedes desactivar tu propia cuenta." };
   }
 

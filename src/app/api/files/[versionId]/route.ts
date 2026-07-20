@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { readStoredFile } from "@/lib/storage";
+import { canViewSubmission } from "@/lib/roles";
 
 export async function GET(
   _req: NextRequest,
@@ -24,10 +25,7 @@ export async function GET(
     return NextResponse.json({ error: "Archivo no encontrado" }, { status: 404 });
   }
 
-  const isOwner = version.submission.authorId === session.user.id;
-  const isDirector = session.user.role === "DIRECTOR";
-
-  if (!isOwner && !isDirector) {
+  if (!canViewSubmission(session.user, version.submission)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 

@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import type { AppRole } from "@/lib/roles";
+import { isAdminRole, ROLE_LABELS } from "@/lib/roles";
 
 type NavProps = {
   name: string;
-  role: "DIRECTOR" | "COLABORADOR";
+  role: AppRole;
 };
 
 export function Nav({ name, role }: NavProps) {
@@ -17,7 +19,7 @@ export function Nav({ name, role }: NavProps) {
     ...(role === "COLABORADOR"
       ? [{ href: "/submissions/new", label: "Nuevo documento" }]
       : []),
-    ...(role === "DIRECTOR"
+    ...(isAdminRole(role)
       ? [
           { href: "/admin/usuarios", label: "Usuarios" },
           { href: "/admin/empresas", label: "Empresas" },
@@ -52,9 +54,7 @@ export function Nav({ name, role }: NavProps) {
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-medium text-slate-900 leading-tight">{name}</p>
-            <p className="text-xs text-slate-400 leading-tight">
-              {role === "DIRECTOR" ? "Director general" : "Colaborador"}
-            </p>
+            <p className="text-xs text-slate-400 leading-tight">{ROLE_LABELS[role]}</p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}

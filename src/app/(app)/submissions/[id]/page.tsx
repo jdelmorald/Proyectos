@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { ReviewActions } from "@/components/ReviewActions";
 import { ResubmitForm } from "@/components/ResubmitForm";
 import { DOCUMENT_TYPE_LABELS, ACTION_LABELS } from "@/lib/validation";
+import { canViewSubmission } from "@/lib/roles";
 
 function formatDate(date: Date) {
   return date.toLocaleString("es", {
@@ -43,10 +44,16 @@ export default async function SubmissionDetailPage({
   });
 
   if (!submission) notFound();
+  if (!canViewSubmission(user, submission)) notFound();
 
   const isOwner = submission.authorId === user.id;
-  const isDirector = user.role === "DIRECTOR";
-  if (!isOwner && !isDirector) notFound();
+  const isDirectorReview =
+    user.role === "DIRECTOR" &&
+    (submission.status === "ENVIADO" || submission.status === "EN_REVISION_DIRECCION");
+  const isGerenteReview =
+    user.role === "GERENTE" &&
+    submission.status === "ENVIADO" &&
+    submission.companyId === user.companyId;
 
   const latestVersion = submission.versions[0];
 
@@ -90,9 +97,8 @@ export default async function SubmissionDetailPage({
         </div>
       </div>
 
-      {isDirector && submission.status === "ENVIADO" && (
-        <ReviewActions submissionId={submission.id} />
-      )}
+      {isDirectorReview && <ReviewActions submissionId={submission.id} mode="director" />}
+      {isGerenteReview && <ReviewActions submissionId={submission.id} mode="gerente" />}
 
       {isOwner && submission.status === "OBJETADO" && (
         <ResubmitForm submissionId={submission.id} />

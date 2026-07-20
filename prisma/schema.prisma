@@ -12,7 +12,9 @@ datasource db {
 }
 
 enum Role {
+  ADMINISTRADOR
   DIRECTOR
+  GERENTE
   COLABORADOR
 }
 
@@ -26,6 +28,7 @@ enum DocumentType {
 
 enum SubmissionStatus {
   ENVIADO
+  EN_REVISION_DIRECCION
   OBJETADO
   APROBADO
   RECHAZADO
@@ -34,6 +37,7 @@ enum SubmissionStatus {
 enum HistoryAction {
   ENVIADO
   REENVIADO
+  APROBADO_GERENTE
   OBJETADO
   APROBADO
   RECHAZADO
