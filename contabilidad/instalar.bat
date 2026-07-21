@@ -39,10 +39,15 @@ echo WshShell.Run """%~dp0iniciar-invisible.vbs""", 0, False
 ) > "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\Sistema Contable.vbs"
 
 echo ==============================================
-echo   Iniciando el sistema ahora...
+echo   Buscando la carpeta real del Escritorio...
 echo ==============================================
-wscript.exe "iniciar-invisible.vbs"
-timeout /t 3 /nobreak >nul
+REM En muchos equipos (sobre todo con OneDrive activado) el Escritorio real no
+REM esta en "%%USERPROFILE%%\Desktop" sino en una carpeta redirigida (por
+REM ejemplo "OneDrive\Desktop" o "OneDrive\Escritorio"). Si el acceso directo
+REM se crea en el lugar equivocado, el usuario nunca lo ve. Se consulta el
+REM registro de Windows para usar la carpeta real, sin importar donde este.
+set "DESKTOP=%USERPROFILE%\Desktop"
+for /f "tokens=2,*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v Desktop 2^>nul ^| findstr /i "Desktop"') do set "DESKTOP=%%b"
 
 echo ==============================================
 echo   Creando acceso directo en el Escritorio...
@@ -52,7 +57,25 @@ echo [InternetShortcut]
 echo URL=http://localhost:4004
 echo IconFile=%~dp0logo.ico
 echo IconIndex=0
-) > "%USERPROFILE%\Desktop\Sistema Contable.url"
+) > "%DESKTOP%\Sistema Contable.url"
+
+echo ==============================================
+echo   Iniciando el sistema ahora...
+echo ==============================================
+wscript.exe "iniciar-invisible.vbs"
+
+echo   Esperando a que el sistema termine de arrancar...
+set /a intentos=0
+:esperar
+timeout /t 1 /nobreak >nul
+set /a intentos+=1
+netstat -ano | findstr :4004 | findstr LISTENING >nul
+if errorlevel 1 if %intentos% lss 30 goto esperar
+
+echo ==============================================
+echo   Abriendo el Sistema Contable en el navegador...
+echo ==============================================
+start "" "http://localhost:4004"
 
 echo.
 echo ==============================================
