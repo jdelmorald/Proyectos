@@ -7,6 +7,7 @@ interface Empresa {
   id: number;
   nombre: string;
   rif: string | null;
+  razon_social: string | null;
   moneda: string;
   municipio: string | null;
   alicuota_municipal: number;
@@ -16,7 +17,7 @@ interface Empresa {
 }
 
 const VACIO = {
-  nombre: '', rif: '', moneda: 'Bs.', municipio: '', alicuotaMunicipal: '0', valorUt: '0',
+  nombre: '', rif: '', razonSocial: '', moneda: 'Bs.', municipio: '', alicuotaMunicipal: '0', valorUt: '0',
   logoDataUrl: null as string | null, color: '#0f766e',
 };
 
@@ -52,6 +53,7 @@ export default function EmpresasConfigPage() {
       const body = {
         nombre: form.nombre,
         rif: form.rif || null,
+        razonSocial: form.razonSocial || null,
         moneda: form.moneda,
         municipio: form.municipio || null,
         alicuotaMunicipal: Number(form.alicuotaMunicipal) || 0,
@@ -89,6 +91,7 @@ export default function EmpresasConfigPage() {
     setForm({
       nombre: e.nombre,
       rif: e.rif ?? '',
+      razonSocial: e.razon_social ?? '',
       moneda: e.moneda,
       municipio: e.municipio ?? '',
       alicuotaMunicipal: String(e.alicuota_municipal ?? 0),
@@ -146,7 +149,8 @@ export default function EmpresasConfigPage() {
 
       {!soloLectura && (
         <form onSubmit={onSubmit} className="bg-white rounded-lg border border-slate-200 p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-          <input required placeholder="Nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2" />
+          <input required placeholder="Nombre o siglas de la marca" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2" />
+          <input placeholder="Razón social" value={form.razonSocial} onChange={(e) => setForm({ ...form, razonSocial: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2" />
           <input placeholder="RIF" value={form.rif} onChange={(e) => setForm({ ...form, rif: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2" />
           <input placeholder="Moneda (símbolo a mostrar)" value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2" />
           <input placeholder="Municipio (para impuesto municipal)" value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2" />
@@ -193,6 +197,7 @@ export default function EmpresasConfigPage() {
             <tr>
               <th className="px-4 py-2">Logo</th>
               <th className="px-4 py-2">Nombre</th>
+              <th className="px-4 py-2">Razón Social</th>
               <th className="px-4 py-2">RIF</th>
               <th className="px-4 py-2">Moneda</th>
               <th className="px-4 py-2">Municipio</th>
@@ -214,6 +219,7 @@ export default function EmpresasConfigPage() {
                   )}
                 </td>
                 <td className="px-4 py-2 font-medium text-slate-700">{e.nombre}</td>
+                <td className="px-4 py-2 text-xs text-slate-500">{e.razon_social || '—'}</td>
                 <td className="px-4 py-2">{e.rif}</td>
                 <td className="px-4 py-2">{e.moneda}</td>
                 <td className="px-4 py-2">{e.municipio || '—'}</td>

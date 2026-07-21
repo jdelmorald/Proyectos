@@ -48,6 +48,7 @@ agregarColumnaSiFalta('usuarios', 'cedula', 'TEXT');
 agregarColumnaSiFalta('usuarios', 'cargo', 'TEXT');
 agregarColumnaSiFalta('usuarios', 'foto_data_url', 'TEXT');
 agregarColumnaSiFalta('usuarios', 'empresa_principal_id', 'INTEGER REFERENCES empresas(id)');
+agregarColumnaSiFalta('empresas', 'razon_social', 'TEXT');
 
 let transactionDepth = 0;
 

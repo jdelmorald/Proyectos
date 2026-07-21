@@ -5,9 +5,15 @@ import ExcelJS from 'exceljs';
 export interface EmpresaExport {
   nombre: string;
   rif?: string | null;
+  razon_social?: string | null;
   logo_data_url?: string | null;
   color?: string | null;
   moneda?: string | null;
+}
+
+export interface UsuarioExport {
+  nombre: string;
+  email: string;
 }
 
 export interface ColumnaExport {
@@ -43,6 +49,8 @@ export interface ExportOptions {
   pdfDosColumnas?: { izquierda: BloqueColumnas; derecha: BloqueColumnas };
   /** Líneas de firma al pie del PDF (solo aplica a estados financieros formales). */
   firmas?: { izquierda: string; derecha: string };
+  /** Usuario que genera el documento, para mostrar "Generado por" en el pie. */
+  usuario?: UsuarioExport | null;
 }
 
 function formatearCelda(v: unknown): string {
@@ -75,6 +83,24 @@ function fechaActual(): string {
   return new Date().toLocaleDateString('es-VE');
 }
 
+function fechaDDMMYYYY(d: Date): string {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}-${mm}-${d.getFullYear()}`;
+}
+
+function horaAMPM(d: Date): string {
+  return d.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+}
+
+function textoGeneradoPor(usuario?: UsuarioExport | null): string {
+  const ahora = new Date();
+  if (usuario) {
+    return `Generado por: ${usuario.nombre} (${usuario.email}) el ${fechaDDMMYYYY(ahora)} a las ${horaAMPM(ahora)}`;
+  }
+  return `Generado el ${fechaHoraActual()}`;
+}
+
 function descargarBlob(blob: Blob, nombreArchivo: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -101,14 +127,22 @@ function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [num
     }
   }
   const textX = empresa?.logo_data_url ? MARGEN + 20 : MARGEN;
+  let yIzq = 14;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11.5);
   doc.setTextColor(...colorPrincipal);
-  doc.text(empresa?.nombre || 'Sistema Contable', textX, 14);
+  doc.text(empresa?.nombre || 'Sistema Contable', textX, yIzq);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(110);
-  if (empresa?.rif) doc.text(`RIF: ${empresa.rif}`, textX, 19);
+  if (empresa?.razon_social) {
+    yIzq += 4.5;
+    doc.text(empresa.razon_social, textX, yIzq);
+  }
+  if (empresa?.rif) {
+    yIzq += 4.5;
+    doc.text(`RIF: ${empresa.rif}`, textX, yIzq);
+  }
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
@@ -138,7 +172,7 @@ function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [num
     doc.text(`${m.label}: ${m.valor}`, pageWidth - MARGEN, yy, { align: 'right' });
   });
 
-  const yLinea = Math.max(24, yTitulo, 10 + filasMetadatos.length * 4) + 3;
+  const yLinea = Math.max(24, yTitulo, 10 + filasMetadatos.length * 4, yIzq + 2) + 3;
   doc.setDrawColor(...colorPrincipal);
   doc.setLineWidth(0.6);
   doc.line(MARGEN, yLinea, pageWidth - MARGEN, yLinea);
@@ -146,7 +180,8 @@ function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [num
   return yLinea + 6;
 }
 
-function dibujarPie(doc: jsPDF, generadoEl: string) {
+function dibujarPie(doc: jsPDF, usuario?: UsuarioExport | null) {
+  const texto = textoGeneradoPor(usuario);
   const totalPaginas = doc.getNumberOfPages();
   for (let p = 1; p <= totalPaginas; p++) {
     doc.setPage(p);
@@ -157,7 +192,7 @@ function dibujarPie(doc: jsPDF, generadoEl: string) {
     doc.line(MARGEN, pageHeight - 13, pageWidth - MARGEN, pageHeight - 13);
     doc.setFontSize(7);
     doc.setTextColor(150);
-    doc.text(`Generado el ${generadoEl}`, MARGEN, pageHeight - 8);
+    doc.text(texto, MARGEN, pageHeight - 8);
     doc.text(`Página ${p} de ${totalPaginas}`, pageWidth - MARGEN, pageHeight - 8, { align: 'right' });
   }
 }
@@ -217,7 +252,7 @@ function crearDidParseCell(filasOriginales: any[], colorPrincipal: [number, numb
 }
 
 export function exportarPDF(opts: ExportOptions) {
-  const { empresa, columnas, filas, filaTotales, nombreArchivo, pdfDosColumnas, firmas } = opts;
+  const { empresa, columnas, filas, filaTotales, nombreArchivo, pdfDosColumnas, firmas, usuario } = opts;
   const colorPrincipal = hexARgb(empresa?.color);
   const orientacion = !pdfDosColumnas && columnas.length >= 6 ? 'landscape' : 'portrait';
   const doc = new jsPDF({ orientation: orientacion });
@@ -277,12 +312,12 @@ export function exportarPDF(opts: ExportOptions) {
   }
 
   if (firmas) dibujarFirmas(doc, y, firmas);
-  dibujarPie(doc, fechaHoraActual());
+  dibujarPie(doc, usuario);
   doc.save(`${nombreArchivo}.pdf`);
 }
 
 export async function exportarExcel(opts: ExportOptions) {
-  const { empresa, titulo, subtitulo, columnas, filas, filaTotales, nombreArchivo } = opts;
+  const { empresa, titulo, subtitulo, columnas, filas, filaTotales, nombreArchivo, usuario } = opts;
 
   const libro = new ExcelJS.Workbook();
   libro.creator = 'Sistema Contable Delder';
@@ -291,11 +326,12 @@ export async function exportarExcel(opts: ExportOptions) {
   const colorArgb = 'FF' + hexARgb(empresa?.color).map((c) => c.toString(16).padStart(2, '0')).join('').toUpperCase();
 
   hoja.addRow([empresa?.nombre || 'Sistema Contable']).font = { bold: true, size: 14, color: { argb: colorArgb } };
+  if (empresa?.razon_social) hoja.addRow([empresa.razon_social]).font = { italic: true, size: 9, color: { argb: 'FF555555' } };
   if (empresa?.rif) hoja.addRow([`RIF: ${empresa.rif}`]);
   hoja.addRow([titulo]).font = { bold: true, size: 12 };
   if (subtitulo) hoja.addRow([subtitulo]);
   if (empresa?.moneda) hoja.addRow([`Cifras expresadas en ${empresa.moneda}`]).font = { italic: true, size: 8, color: { argb: 'FF888888' } };
-  hoja.addRow([`Generado el ${fechaHoraActual()}`]).font = { italic: true, size: 9, color: { argb: 'FF888888' } };
+  hoja.addRow([textoGeneradoPor(usuario)]).font = { italic: true, size: 9, color: { argb: 'FF888888' } };
   hoja.addRow([]);
 
   const filaEncabezado = hoja.addRow(columnas.map((c) => c.header));

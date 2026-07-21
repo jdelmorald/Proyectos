@@ -24,9 +24,19 @@ empresasRouter.get('/', (req, res) => {
   );
 });
 
+// Lista liviana de TODAS las empresas activas (solo id/nombre/logo/color, sin
+// datos contables), sin filtrar por acceso. La usa la pantalla de bienvenida
+// para mostrar las 4 pestañas de marca siempre visibles: así un usuario sin
+// permiso en una empresa puede verla e intentar entrar, y recibe un aviso de
+// "no tiene permisos" en vez de que la pestaña simplemente no exista.
+empresasRouter.get('/todas-visibles', (_req, res) => {
+  res.json(db.prepare('SELECT id, nombre, logo_data_url, color FROM empresas WHERE activo = 1 ORDER BY nombre').all());
+});
+
 const empresaSchema = z.object({
   nombre: z.string().min(1),
   rif: z.string().optional().nullable(),
+  razonSocial: z.string().optional().nullable(),
   moneda: z.string().min(1).default('Bs.'),
   municipio: z.string().optional().nullable(),
   alicuotaMunicipal: z.number().min(0).default(0),
@@ -44,9 +54,9 @@ empresasRouter.post('/', requireAdmin, (req, res) => {
   const id = runInTransaction(() => {
     const info = db
       .prepare(
-        'INSERT INTO empresas (nombre, rif, moneda, municipio, alicuota_municipal, valor_ut, logo_data_url, color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO empresas (nombre, rif, razon_social, moneda, municipio, alicuota_municipal, valor_ut, logo_data_url, color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .run(d.nombre, d.rif ?? null, d.moneda, d.municipio ?? null, d.alicuotaMunicipal, d.valorUt, d.logoDataUrl ?? null, d.color);
+      .run(d.nombre, d.rif ?? null, d.razonSocial ?? null, d.moneda, d.municipio ?? null, d.alicuotaMunicipal, d.valorUt, d.logoDataUrl ?? null, d.color);
     const empresaId = info.lastInsertRowid as number;
     // Toda empresa nueva arranca con el mismo plan de cuentas base que las demás,
     // para poder registrar asientos de inmediato en igualdad de condiciones.
@@ -70,8 +80,8 @@ empresasRouter.put('/:id', requireAdmin, (req, res) => {
   }
   const d = parsed.data;
   db.prepare(
-    'UPDATE empresas SET nombre=?, rif=?, moneda=?, municipio=?, alicuota_municipal=?, valor_ut=?, logo_data_url=?, color=? WHERE id=?'
-  ).run(d.nombre, d.rif ?? null, d.moneda, d.municipio ?? null, d.alicuotaMunicipal, d.valorUt, d.logoDataUrl ?? null, d.color, id);
+    'UPDATE empresas SET nombre=?, rif=?, razon_social=?, moneda=?, municipio=?, alicuota_municipal=?, valor_ut=?, logo_data_url=?, color=? WHERE id=?'
+  ).run(d.nombre, d.rif ?? null, d.razonSocial ?? null, d.moneda, d.municipio ?? null, d.alicuotaMunicipal, d.valorUt, d.logoDataUrl ?? null, d.color, id);
   res.json({ ok: true });
 });
 

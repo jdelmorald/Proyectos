@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS empresas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL,
   rif TEXT,
+  razon_social TEXT,
   moneda TEXT NOT NULL DEFAULT 'Bs.',
   municipio TEXT,
   alicuota_municipal REAL NOT NULL DEFAULT 0,

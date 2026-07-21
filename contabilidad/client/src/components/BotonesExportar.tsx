@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BloqueColumnas, ColumnaExport, EmpresaExport, exportarExcel, exportarPDF } from '../utils/exportar';
+import { useAuth } from '../context/AuthContext';
 
 interface Props {
   empresa: EmpresaExport | null | undefined;
@@ -17,9 +18,11 @@ interface Props {
 export default function BotonesExportar({
   empresa, titulo, subtitulo, columnas, filas, filaTotales, nombreArchivo, metadatos, pdfDosColumnas, firmas,
 }: Props) {
+  const { user } = useAuth();
   const [generando, setGenerando] = useState(false);
   const deshabilitado = filas.length === 0 || generando;
-  const opts = { empresa, titulo, subtitulo, columnas, filas, filaTotales, nombreArchivo, metadatos, pdfDosColumnas, firmas };
+  const usuario = user ? { nombre: user.nombre, email: user.email } : undefined;
+  const opts = { empresa, titulo, subtitulo, columnas, filas, filaTotales, nombreArchivo, metadatos, pdfDosColumnas, firmas, usuario };
 
   async function onExcel() {
     setGenerando(true);

@@ -37,10 +37,22 @@ if (!existente) {
 }
 
 const EMPRESAS = [
-  { nombre: 'Sumivensa', rif: null, color: '#d6293a', logo: logoComoDataUrl('sumivensa-logo.png') },
-  { nombre: 'Indelderca', rif: null, color: '#3a78c2', logo: logoComoDataUrl('indelderca-logo.png') },
-  { nombre: 'Salud San Marcos', rif: null, color: '#1fb3b3', logo: logoComoDataUrl('saludsanmarcos-logo.jpg') },
-  { nombre: 'Uomo Store', rif: null, color: '#e2833c', logo: logoComoDataUrl('uomo-logo.png') },
+  {
+    nombre: 'Sumivensa', rif: 'J-508014669', razonSocial: 'Suministros y Servicios Logísticos Venezolanos, S.A.',
+    color: '#d6293a', logo: logoComoDataUrl('sumivensa-logo.png'),
+  },
+  {
+    nombre: 'Indelderca', rif: 'J-502893873', razonSocial: "Inversiones Del Moral - D'Errico, C.A.",
+    color: '#3a78c2', logo: logoComoDataUrl('indelderca-logo.png'),
+  },
+  {
+    nombre: 'Salud San Marcos', rif: 'J-504102849', razonSocial: 'Centro Médico San Marcos, C.A.',
+    color: '#1fb3b3', logo: logoComoDataUrl('saludsanmarcos-logo.jpg'),
+  },
+  {
+    nombre: 'Uomo Store', rif: 'J-502893873', razonSocial: "Inversiones Del Moral - D'Errico, C.A.",
+    color: '#e2833c', logo: logoComoDataUrl('uomo-logo.png'),
+  },
 ];
 
 runInTransaction(() => {
@@ -49,12 +61,24 @@ runInTransaction(() => {
     let empresaId: number;
     if (!fila) {
       const info = db
-        .prepare('INSERT INTO empresas (nombre, rif, moneda, color, logo_data_url) VALUES (?, ?, ?, ?, ?)')
-        .run(emp.nombre, emp.rif, 'Bs.', emp.color, emp.logo);
+        .prepare('INSERT INTO empresas (nombre, rif, razon_social, moneda, color, logo_data_url) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(emp.nombre, emp.rif, emp.razonSocial, 'Bs.', emp.color, emp.logo);
       empresaId = info.lastInsertRowid as number;
       console.log(`Empresa creada: ${emp.nombre}`);
     } else {
       empresaId = fila.id;
+      // Empresa ya existente (instalación previa): completa RIF/razón social
+      // solo si todavía están vacíos, sin pisar nada que el usuario ya haya
+      // configurado a mano desde Configuración → Empresas.
+      const actual = db.prepare('SELECT rif, razon_social FROM empresas WHERE id = ?').get(empresaId) as
+        | { rif: string | null; razon_social: string | null }
+        | undefined;
+      if (actual && !actual.rif && emp.rif) {
+        db.prepare('UPDATE empresas SET rif = ? WHERE id = ?').run(emp.rif, empresaId);
+      }
+      if (actual && !actual.razon_social && emp.razonSocial) {
+        db.prepare('UPDATE empresas SET razon_social = ? WHERE id = ?').run(emp.razonSocial, empresaId);
+      }
     }
 
     const tieneCuentas = db.prepare('SELECT id FROM plan_cuentas WHERE empresa_id = ? LIMIT 1').get(empresaId);

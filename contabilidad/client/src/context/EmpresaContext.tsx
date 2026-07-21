@@ -6,6 +6,7 @@ export interface Empresa {
   id: number;
   nombre: string;
   rif: string | null;
+  razon_social: string | null;
   moneda: string;
   municipio: string | null;
   alicuota_municipal: number;
