@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const planCuentasRouter = Router();
-planCuentasRouter.use(requireAuth);
+planCuentasRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 planCuentasRouter.get('/', (req, res) => {
   const empresaId = Number(req.query.empresaId);
@@ -86,7 +87,7 @@ planCuentasRouter.put('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-planCuentasRouter.delete('/:id', (req, res) => {
+planCuentasRouter.delete('/:id', requireAccesoRecurso('plan_cuentas'), (req, res) => {
   const enUso = db.prepare('SELECT id FROM asiento_lineas WHERE cuenta_id = ? LIMIT 1').get(req.params.id);
   if (enUso) {
     return res.status(409).json({ error: 'No se puede eliminar: la cuenta tiene movimientos registrados' });

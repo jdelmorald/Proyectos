@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db, runInTransaction } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 import { generarSiguienteNumeroAsiento } from '../services/correlativo';
 
 export const cuentasPendientesRouter = Router();
-cuentasPendientesRouter.use(requireAuth);
+cuentasPendientesRouter.use(requireAuth, requireAccesoEmpresaQuery);
 
 function mapCuentaPendiente(fila: any) {
   return {
@@ -50,7 +51,7 @@ cuentasPendientesRouter.get('/', (req, res) => {
   res.json(filas.map(mapCuentaPendiente));
 });
 
-cuentasPendientesRouter.get('/:id', (req, res) => {
+cuentasPendientesRouter.get('/:id', requireAccesoRecurso('cuentas_pendientes'), (req, res) => {
   const fila = db
     .prepare(
       `SELECT cp.*, t.nombre AS tercero_nombre, a.numero AS asiento_numero
@@ -76,7 +77,7 @@ const abonarSchema = z.object({
 
 // Registra un abono (cobro de una CxC o pago de una CxP): crea el asiento contable
 // de contrapartida (Banco/Caja) automáticamente y reduce el saldo pendiente.
-cuentasPendientesRouter.post('/:id/abonar', (req, res) => {
+cuentasPendientesRouter.post('/:id/abonar', requireAccesoRecurso('cuentas_pendientes'), (req, res) => {
   const parsed = abonarSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });

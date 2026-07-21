@@ -2,14 +2,26 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db, runInTransaction } from '../db';
 import { requireAdmin, requireAuth } from '../middleware/auth';
+import { usuarioTieneAcceso } from '../middleware/accesoEmpresa';
 import { generarSiguienteNumeroAsiento } from '../services/correlativo';
 import { insertarPlanCuentasDefault } from '../services/planCuentasDefault';
 
 export const empresasRouter = Router();
 empresasRouter.use(requireAuth);
 
-empresasRouter.get('/', (_req, res) => {
-  res.json(db.prepare('SELECT * FROM empresas WHERE activo = 1 ORDER BY nombre').all());
+// Solo devuelve las empresas a las que el usuario logueado tiene acceso otorgado
+// explícitamente (tabla usuario_empresas) — es la base de que un analista de
+// Sumivensa, por ejemplo, ni siquiera vea que existen las otras empresas.
+empresasRouter.get('/', (req, res) => {
+  res.json(
+    db
+      .prepare(
+        `SELECT e.* FROM empresas e
+         JOIN usuario_empresas ue ON ue.empresa_id = e.id AND ue.usuario_id = ?
+         WHERE e.activo = 1 ORDER BY e.nombre`
+      )
+      .all(req.user!.id)
+  );
 });
 
 const empresaSchema = z.object({
@@ -39,6 +51,9 @@ empresasRouter.post('/', requireAdmin, (req, res) => {
     // Toda empresa nueva arranca con el mismo plan de cuentas base que las demás,
     // para poder registrar asientos de inmediato en igualdad de condiciones.
     insertarPlanCuentasDefault(empresaId);
+    // Quien crea la empresa queda con acceso automáticamente; para que la vean
+    // otros usuarios, un administrador se lo otorga desde Usuarios.
+    db.prepare('INSERT OR IGNORE INTO usuario_empresas (usuario_id, empresa_id) VALUES (?, ?)').run(req.user!.id, empresaId);
     return empresaId;
   });
   res.status(201).json({ id });
@@ -50,6 +65,9 @@ empresasRouter.put('/:id', requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });
   }
   const id = Number(req.params.id);
+  if (!usuarioTieneAcceso(req.user!.id, id)) {
+    return res.status(403).json({ error: 'No tiene acceso a esta empresa' });
+  }
   const d = parsed.data;
   db.prepare(
     'UPDATE empresas SET nombre=?, rif=?, moneda=?, municipio=?, alicuota_municipal=?, valor_ut=?, logo_data_url=?, color=? WHERE id=?'
@@ -61,6 +79,9 @@ empresasRouter.delete('/:id', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const existente = db.prepare('SELECT id FROM empresas WHERE id = ? AND activo = 1').get(id);
   if (!existente) return res.status(404).json({ error: 'No encontrada' });
+  if (!usuarioTieneAcceso(req.user!.id, id)) {
+    return res.status(403).json({ error: 'No tiene acceso a esta empresa' });
+  }
   // Se desactiva en vez de borrar: así ningún asiento u otro registro histórico
   // que ya haga referencia a esta empresa queda huérfano. Deja de aparecer en
   // el sistema por completo, igual que un borrado, pero de forma reversible.
@@ -176,6 +197,9 @@ empresasRouter.post('/:id/datos-demo', requireAdmin, (req, res) => {
   const empresaId = Number(req.params.id);
   const empresa = db.prepare('SELECT id FROM empresas WHERE id = ? AND activo = 1').get(empresaId);
   if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada' });
+  if (!usuarioTieneAcceso(req.user!.id, empresaId)) {
+    return res.status(403).json({ error: 'No tiene acceso a esta empresa' });
+  }
 
   const codigos = ['1.1.01', '1.1.02', '1.1.03', '1.1.04', '1.1.05', '1.2.01', '2.1.01', '2.1.02', '3.1.01', '4.1.01', '6.1.01', '6.1.02'];
   const c = idsCuentasPorCodigo(empresaId, codigos);

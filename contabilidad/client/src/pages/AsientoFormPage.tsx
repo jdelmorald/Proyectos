@@ -37,6 +37,8 @@ interface AsientoDetalle {
   descripcion: string | null;
   estado: 'registrado' | 'anulado';
   motivoAnulacion: string | null;
+  creadoPorNombre: string | null;
+  createdAt: string;
   lineas: {
     cuentaId: number; cuentaCodigo: string; cuentaNombre: string; descripcion: string | null; debe: number; haber: number;
     centroCostoNombre: string | null; terceroNombre: string | null; fechaVencimiento: string | null; moneda: string; montoOriginal: number | null; tasaCambio: number | null;
@@ -177,6 +179,10 @@ export default function AsientoFormPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Asiento {asiento.numero}</h1>
             <div className="text-sm text-slate-500">{asiento.fecha} · {asiento.descripcion}</div>
+            <div className="text-xs text-slate-400 mt-0.5">
+              Registrado por {asiento.creadoPorNombre || 'usuario eliminado'}
+              {asiento.createdAt ? ` · ${new Date(asiento.createdAt.replace(' ', 'T') + 'Z').toLocaleString('es-VE')}` : ''}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <BotonesExportar

@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const libroComprasRouter = Router();
-libroComprasRouter.use(requireAuth);
+libroComprasRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 libroComprasRouter.get('/', (req, res) => {
   const empresaId = Number(req.query.empresaId);
@@ -56,7 +57,7 @@ libroComprasRouter.post('/', (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid });
 });
 
-libroComprasRouter.put('/:id', (req, res) => {
+libroComprasRouter.put('/:id', requireAccesoRecurso('libro_compras'), (req, res) => {
   const parsed = registroSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });
@@ -64,15 +65,15 @@ libroComprasRouter.put('/:id', (req, res) => {
   const id = Number(req.params.id);
   const d = parsed.data;
   db.prepare(
-    `UPDATE libro_compras SET fecha=?, tipo_documento=?, numero_factura=?, numero_control=?, proveedor_rif=?, proveedor_nombre=?, base_imponible=?, exento=?, iva_porcentaje=?, iva_monto=?, iva_retenido=?, total=?, observaciones=? WHERE id=?`
+    `UPDATE libro_compras SET fecha=?, tipo_documento=?, numero_factura=?, numero_control=?, proveedor_rif=?, proveedor_nombre=?, base_imponible=?, exento=?, iva_porcentaje=?, iva_monto=?, iva_retenido=?, total=?, observaciones=? WHERE id=? AND empresa_id=?`
   ).run(
     d.fecha, d.tipoDocumento, d.numeroFactura, d.numeroControl ?? null, d.proveedorRif, d.proveedorNombre,
-    d.baseImponible, d.exento, d.ivaPorcentaje, d.ivaMonto, d.ivaRetenido, d.total, d.observaciones ?? null, id
+    d.baseImponible, d.exento, d.ivaPorcentaje, d.ivaMonto, d.ivaRetenido, d.total, d.observaciones ?? null, id, d.empresaId
   );
   res.json({ ok: true });
 });
 
-libroComprasRouter.delete('/:id', (req, res) => {
+libroComprasRouter.delete('/:id', requireAccesoRecurso('libro_compras'), (req, res) => {
   db.prepare('DELETE FROM libro_compras WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

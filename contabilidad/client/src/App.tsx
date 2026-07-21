@@ -32,9 +32,13 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 function RequireEmpresa({ children }: { children: JSX.Element }) {
-  const { empresaId, loading } = useEmpresa();
+  const { empresaId, empresa, loading } = useEmpresa();
   if (loading) return <div className="p-8 text-slate-500">Cargando...</div>;
-  if (!empresaId) return <Navigate to="/seleccionar-empresa" replace />;
+  // Si empresaId quedó guardado de una sesión anterior pero ya no está en la
+  // lista de empresas del usuario (p.ej. le revocaron el acceso), `empresa`
+  // no aparece aunque empresaId siga siendo un número: hay que mandarlo a
+  // elegir empresa de nuevo, no dejarlo en un panel roto.
+  if (!empresaId || !empresa) return <Navigate to="/seleccionar-empresa" replace />;
   return children;
 }
 

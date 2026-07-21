@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const fiscalRouter = Router();
-fiscalRouter.use(requireAuth);
+fiscalRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 function periodoRango(req: any): { desde?: string; hasta?: string } {
   return { desde: req.query.desde as string | undefined, hasta: req.query.hasta as string | undefined };
@@ -91,7 +92,7 @@ fiscalRouter.post('/retenciones-islr', (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid });
 });
 
-fiscalRouter.put('/retenciones-islr/:id', (req, res) => {
+fiscalRouter.put('/retenciones-islr/:id', requireAccesoRecurso('retenciones_islr'), (req, res) => {
   const parsed = retencionIslrSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });
@@ -106,7 +107,7 @@ fiscalRouter.put('/retenciones-islr/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-fiscalRouter.delete('/retenciones-islr/:id', (req, res) => {
+fiscalRouter.delete('/retenciones-islr/:id', requireAccesoRecurso('retenciones_islr'), (req, res) => {
   db.prepare('DELETE FROM retenciones_islr WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
@@ -153,7 +154,7 @@ fiscalRouter.post('/igtf', (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid, monto });
 });
 
-fiscalRouter.delete('/igtf/:id', (req, res) => {
+fiscalRouter.delete('/igtf/:id', requireAccesoRecurso('igtf_operaciones'), (req, res) => {
   db.prepare('DELETE FROM igtf_operaciones WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
@@ -258,7 +259,7 @@ fiscalRouter.post('/islr-anticipos', (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid });
 });
 
-fiscalRouter.delete('/islr-anticipos/:id', (req, res) => {
+fiscalRouter.delete('/islr-anticipos/:id', requireAccesoRecurso('islr_anticipos'), (req, res) => {
   db.prepare('DELETE FROM islr_anticipos WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

@@ -26,7 +26,7 @@ const EmpresaContext = createContext<EmpresaContextValue | undefined>(undefined)
 const STORAGE_KEY = 'contabilidad_empresa_id';
 
 export function EmpresaProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaId, setEmpresaIdState] = useState<number | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -35,16 +35,24 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Mientras AuthContext todavía está confirmando la sesión (p.ej. justo tras
+    // recargar la página), `user` pasa por null antes de resolverse al usuario
+    // real. Si tratáramos ese null transitorio como "no hay sesión" aquí,
+    // `loading` bajaría a false con `empresas` todavía vacío, y RequireEmpresa
+    // mandaría al usuario de vuelta a elegir empresa aunque sí tuviera una
+    // seleccionada — hay que esperar a que AuthContext termine primero.
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
+      setEmpresas([]);
       return;
     }
+    setLoading(true);
     api
       .get<Empresa[]>('/empresas')
       .then((lista) => setEmpresas(lista))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, authLoading]);
 
   function setEmpresaId(id: number) {
     setEmpresaIdState(id);

@@ -1,16 +1,17 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const reportesRouter = Router();
-reportesRouter.use(requireAuth);
+reportesRouter.use(requireAuth, requireAccesoEmpresaQuery);
 
 function saldoCuenta(naturaleza: 'deudora' | 'acreedora', debe: number, haber: number): number {
   return naturaleza === 'deudora' ? debe - haber : haber - debe;
 }
 
 // Libro Mayor: movimientos de una cuenta específica con saldo acumulado
-reportesRouter.get('/libro-mayor/:cuentaId', (req, res) => {
+reportesRouter.get('/libro-mayor/:cuentaId', requireAccesoRecurso('plan_cuentas', { nombreParam: 'cuentaId' }), (req, res) => {
   const cuentaId = Number(req.params.cuentaId);
   const desde = req.query.desde as string | undefined;
   const hasta = req.query.hasta as string | undefined;

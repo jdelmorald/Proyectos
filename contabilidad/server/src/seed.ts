@@ -1,7 +1,23 @@
 import 'dotenv/config';
+import fs from 'node:fs';
+import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import { db, runInTransaction } from './db';
 import { insertarPlanCuentasDefault } from './services/planCuentasDefault';
+
+// Logos de marca ya incluidos en el repo (client/src/assets), como data URL para
+// que los reportes exportados en PDF/Excel salgan con el logo real desde el
+// primer arranque, no solo la pantalla de selección de empresa.
+function logoComoDataUrl(archivo: string): string | null {
+  try {
+    const ruta = path.join(__dirname, '..', '..', 'client', 'src', 'assets', archivo);
+    const buffer = fs.readFileSync(ruta);
+    const mime = archivo.endsWith('.jpg') || archivo.endsWith('.jpeg') ? 'image/jpeg' : 'image/png';
+    return `data:${mime};base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
+}
 
 const email = process.env.SEED_ADMIN_EMAIL || 'admin@contabilidad.com';
 const password = process.env.SEED_ADMIN_PASSWORD || 'CambiarClave123!';
@@ -21,9 +37,10 @@ if (!existente) {
 }
 
 const EMPRESAS = [
-  { nombre: 'Sumivensa', rif: null },
-  { nombre: 'Indelderca', rif: null },
-  { nombre: 'Salud San Marcos', rif: null },
+  { nombre: 'Sumivensa', rif: null, color: '#d6293a', logo: logoComoDataUrl('sumivensa-logo.png') },
+  { nombre: 'Indelderca', rif: null, color: '#3a78c2', logo: logoComoDataUrl('indelderca-logo.png') },
+  { nombre: 'Salud San Marcos', rif: null, color: '#1fb3b3', logo: logoComoDataUrl('saludsanmarcos-logo.jpg') },
+  { nombre: 'Uomo Store', rif: null, color: '#e2833c', logo: logoComoDataUrl('uomo-logo.png') },
 ];
 
 runInTransaction(() => {
@@ -31,7 +48,9 @@ runInTransaction(() => {
     let fila = db.prepare('SELECT id FROM empresas WHERE nombre = ?').get(emp.nombre) as { id: number } | undefined;
     let empresaId: number;
     if (!fila) {
-      const info = db.prepare('INSERT INTO empresas (nombre, rif, moneda) VALUES (?, ?, ?)').run(emp.nombre, emp.rif, 'Bs.');
+      const info = db
+        .prepare('INSERT INTO empresas (nombre, rif, moneda, color, logo_data_url) VALUES (?, ?, ?, ?, ?)')
+        .run(emp.nombre, emp.rif, 'Bs.', emp.color, emp.logo);
       empresaId = info.lastInsertRowid as number;
       console.log(`Empresa creada: ${emp.nombre}`);
     } else {
@@ -44,6 +63,24 @@ runInTransaction(() => {
       console.log(`Plan de cuentas creado para ${emp.nombre}.`);
     } else {
       console.log(`${emp.nombre} ya tiene un plan de cuentas, no se modificó.`);
+    }
+  }
+
+  // Migración a permisos por empresa: si nadie tiene acceso explícito a ninguna
+  // empresa todavía (instalación nueva, o instalación existente que se actualiza
+  // a esta versión), se le da a todos los usuarios acceso a todas las empresas
+  // actuales, para que nadie pierda de golpe algo que ya podía ver. El
+  // administrador ajusta accesos puntuales después desde Usuarios.
+  const totalPermisos = (db.prepare('SELECT COUNT(*) AS n FROM usuario_empresas').get() as { n: number }).n;
+  if (totalPermisos === 0) {
+    const usuarios = db.prepare('SELECT id FROM usuarios').all() as { id: number }[];
+    const empresas = db.prepare('SELECT id FROM empresas').all() as { id: number }[];
+    const otorgar = db.prepare('INSERT OR IGNORE INTO usuario_empresas (usuario_id, empresa_id) VALUES (?, ?)');
+    for (const u of usuarios) {
+      for (const e of empresas) otorgar.run(u.id, e.id);
+    }
+    if (usuarios.length > 0 && empresas.length > 0) {
+      console.log(`Permisos iniciales: ${usuarios.length} usuario(s) con acceso a las ${empresas.length} empresa(s) existentes.`);
     }
   }
 });

@@ -5,6 +5,12 @@ import { useEmpresa } from '../context/EmpresaContext';
 import sumivensaLogo from '../assets/sumivensa-logo.png';
 import indeldercaLogo from '../assets/indelderca-logo.png';
 import saludsanmarcosLogo from '../assets/saludsanmarcos-logo.jpg';
+import uomoLogo from '../assets/uomo-logo.png';
+
+// Orden fijo pedido para la pantalla de bienvenida. Cualquier empresa que no
+// esté en esta lista (agregada después desde Configuración → Empresas) se
+// muestra al final, ordenada alfabéticamente.
+const ORDEN_PREFERIDO = ['Sumivensa', 'Salud San Marcos', 'Indelderca', 'Uomo Store'];
 
 interface MarcaConfig {
   match: string;
@@ -42,6 +48,13 @@ const MARCAS: MarcaConfig[] = [
       </div>
     ),
   },
+  {
+    match: 'Uomo Store',
+    logo: uomoLogo,
+    cardClass: 'border-uomo-brand-500/30 hover:border-uomo-accent-500 hover:shadow-uomo-brand-900/20',
+    titleClass: 'text-uomo-brand-900',
+    bar: <div className="h-1.5 rounded-full bg-uomo-accent-500" />,
+  },
 ];
 
 export default function SeleccionarEmpresaPage() {
@@ -53,6 +66,14 @@ export default function SeleccionarEmpresaPage() {
     setEmpresaId(id);
     navigate('/');
   }
+
+  const empresasOrdenadas = [...empresas].sort((a, b) => {
+    const ia = ORDEN_PREFERIDO.indexOf(a.nombre);
+    const ib = ORDEN_PREFERIDO.indexOf(b.nombre);
+    const ra = ia === -1 ? ORDEN_PREFERIDO.length : ia;
+    const rb = ib === -1 ? ORDEN_PREFERIDO.length : ib;
+    return ra !== rb ? ra - rb : a.nombre.localeCompare(b.nombre);
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -70,9 +91,13 @@ export default function SeleccionarEmpresaPage() {
 
         {loading ? (
           <div className="text-slate-400">Cargando empresas...</div>
+        ) : empresasOrdenadas.length === 0 ? (
+          <div className="text-center text-slate-400 max-w-sm">
+            Tu usuario todavía no tiene acceso a ninguna empresa. Pídele a un administrador que te lo otorgue desde Configuración → Usuarios.
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
-            {empresas.map((empresa) => {
+            {empresasOrdenadas.map((empresa) => {
               const marca = MARCAS.find((m) => m.match === empresa.nombre);
               if (marca) {
                 return (

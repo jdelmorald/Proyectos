@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const centrosCostoRouter = Router();
-centrosCostoRouter.use(requireAuth);
+centrosCostoRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 centrosCostoRouter.get('/', (req, res) => {
   const empresaId = Number(req.query.empresaId);
@@ -48,7 +49,7 @@ centrosCostoRouter.put('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-centrosCostoRouter.delete('/:id', (req, res) => {
+centrosCostoRouter.delete('/:id', requireAccesoRecurso('centros_costo'), (req, res) => {
   const enUso = db.prepare('SELECT id FROM asiento_lineas WHERE centro_costo_id = ? LIMIT 1').get(req.params.id);
   if (enUso) {
     return res.status(409).json({ error: 'No se puede eliminar: el centro de costo tiene movimientos registrados' });

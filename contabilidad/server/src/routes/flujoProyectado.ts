@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const flujoProyectadoRouter = Router();
-flujoProyectadoRouter.use(requireAuth);
+flujoProyectadoRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 flujoProyectadoRouter.get('/', (req, res) => {
   const empresaId = Number(req.query.empresaId);
@@ -76,7 +77,7 @@ flujoProyectadoRouter.post('/', (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid });
 });
 
-flujoProyectadoRouter.put('/:id', (req, res) => {
+flujoProyectadoRouter.put('/:id', requireAccesoRecurso('flujo_caja_proyectado'), (req, res) => {
   const parsed = registroSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });
@@ -84,12 +85,12 @@ flujoProyectadoRouter.put('/:id', (req, res) => {
   const id = Number(req.params.id);
   const d = parsed.data;
   db.prepare(
-    `UPDATE flujo_caja_proyectado SET periodo=?, categoria=?, concepto=?, monto_proyectado=?, observaciones=? WHERE id=?`
-  ).run(d.periodo, d.categoria, d.concepto, d.montoProyectado, d.observaciones ?? null, id);
+    `UPDATE flujo_caja_proyectado SET periodo=?, categoria=?, concepto=?, monto_proyectado=?, observaciones=? WHERE id=? AND empresa_id=?`
+  ).run(d.periodo, d.categoria, d.concepto, d.montoProyectado, d.observaciones ?? null, id, d.empresaId);
   res.json({ ok: true });
 });
 
-flujoProyectadoRouter.delete('/:id', (req, res) => {
+flujoProyectadoRouter.delete('/:id', requireAccesoRecurso('flujo_caja_proyectado'), (req, res) => {
   db.prepare('DELETE FROM flujo_caja_proyectado WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

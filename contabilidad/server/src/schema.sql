@@ -23,6 +23,16 @@ CREATE TABLE IF NOT EXISTS empresas (
   activo INTEGER NOT NULL DEFAULT 1
 );
 
+-- Qué empresas puede ver/usar cada usuario. Sin fila aquí, el usuario no tiene
+-- acceso a esa empresa (ni a sus asientos, reportes, libros, etc.) aunque esté
+-- autenticado. El rol admin/operador sigue rigiendo qué puede HACER; esta tabla
+-- rige a cuáles empresas puede hacerlo.
+CREATE TABLE IF NOT EXISTS usuario_empresas (
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+  empresa_id INTEGER NOT NULL REFERENCES empresas(id),
+  PRIMARY KEY (usuario_id, empresa_id)
+);
+
 CREATE TABLE IF NOT EXISTS plan_cuentas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   empresa_id INTEGER NOT NULL REFERENCES empresas(id),

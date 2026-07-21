@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 
 export const tercerosRouter = Router();
-tercerosRouter.use(requireAuth);
+tercerosRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 tercerosRouter.get('/', (req, res) => {
   const empresaId = Number(req.query.empresaId);
@@ -48,7 +49,7 @@ tercerosRouter.put('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-tercerosRouter.delete('/:id', (req, res) => {
+tercerosRouter.delete('/:id', requireAccesoRecurso('terceros'), (req, res) => {
   const enUso = db.prepare('SELECT id FROM cuentas_pendientes WHERE tercero_id = ? LIMIT 1').get(req.params.id);
   if (enUso) {
     return res.status(409).json({ error: 'No se puede eliminar: el tercero tiene cuentas pendientes registradas' });

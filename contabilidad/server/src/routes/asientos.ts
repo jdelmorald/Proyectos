@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db, runInTransaction } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { requireAccesoEmpresaBody, requireAccesoEmpresaQuery, requireAccesoRecurso } from '../middleware/accesoEmpresa';
 import { generarSiguienteNumeroAsiento } from '../services/correlativo';
 
 export const asientosRouter = Router();
-asientosRouter.use(requireAuth);
+asientosRouter.use(requireAuth, requireAccesoEmpresaQuery, requireAccesoEmpresaBody);
 
 function mapAsiento(fila: any, lineas: any[]) {
   return {
@@ -18,6 +19,7 @@ function mapAsiento(fila: any, lineas: any[]) {
     estado: fila.estado,
     motivoAnulacion: fila.motivo_anulacion,
     creadoPor: fila.creado_por,
+    creadoPorNombre: fila.creado_por_nombre ?? null,
     createdAt: fila.created_at,
     lineas: lineas.map((l) => ({
       id: l.id,
@@ -70,8 +72,15 @@ asientosRouter.get('/', (req, res) => {
   res.json(asientos.map((a) => mapAsiento(a, lineasStmt.all(a.id) as any[])));
 });
 
-asientosRouter.get('/:id', (req, res) => {
-  const fila = db.prepare('SELECT * FROM asientos WHERE id = ?').get(req.params.id) as any;
+asientosRouter.get('/:id', requireAccesoRecurso('asientos'), (req, res) => {
+  const fila = db
+    .prepare(
+      `SELECT a.*, u.nombre AS creado_por_nombre
+       FROM asientos a
+       LEFT JOIN usuarios u ON u.id = a.creado_por
+       WHERE a.id = ?`
+    )
+    .get(req.params.id) as any;
   if (!fila) return res.status(404).json({ error: 'No encontrado' });
   const lineas = db.prepare(SELECT_LINEAS).all(fila.id) as any[];
   res.json(mapAsiento(fila, lineas));
@@ -190,7 +199,7 @@ asientosRouter.post('/', (req, res) => {
 
 const anularSchema = z.object({ motivo: z.string().min(3) });
 
-asientosRouter.post('/:id/anular', (req, res) => {
+asientosRouter.post('/:id/anular', requireAccesoRecurso('asientos'), (req, res) => {
   const parsed = anularSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Debe indicar el motivo de anulación (mínimo 3 caracteres)' });
