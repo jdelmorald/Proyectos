@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   rol TEXT NOT NULL DEFAULT 'operador' CHECK (rol IN ('admin', 'operador')),
+  cedula TEXT,
+  cargo TEXT,
+  foto_data_url TEXT,
+  empresa_principal_id INTEGER REFERENCES empresas(id),
   activo INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

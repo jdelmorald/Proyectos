@@ -18,6 +18,7 @@ import LibroVentasPage from './pages/LibroVentasPage';
 import FlujoProyectadoPage from './pages/FlujoProyectadoPage';
 import EmpresasConfigPage from './pages/EmpresasConfigPage';
 import UsuariosPage from './pages/UsuariosPage';
+import PerfilPage from './pages/PerfilPage';
 import CentrosCostoPage from './pages/CentrosCostoPage';
 import TercerosPage from './pages/TercerosPage';
 import TasasCambioPage from './pages/TasasCambioPage';
@@ -85,6 +86,7 @@ export default function App() {
         <Route path="/fiscal" element={<FiscalPage />} />
         <Route path="/config/empresas" element={<EmpresasConfigPage />} />
         <Route path="/config/usuarios" element={<UsuariosPage />} />
+        <Route path="/perfil" element={<PerfilPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

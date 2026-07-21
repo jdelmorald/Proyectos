@@ -44,6 +44,10 @@ agregarColumnaSiFalta('libro_ventas', 'iva_retenido', 'REAL NOT NULL DEFAULT 0')
 agregarColumnaSiFalta('empresas', 'valor_ut', 'REAL NOT NULL DEFAULT 0');
 agregarColumnaSiFalta('empresas', 'logo_data_url', 'TEXT');
 agregarColumnaSiFalta('empresas', 'color', "TEXT NOT NULL DEFAULT '#0f766e'");
+agregarColumnaSiFalta('usuarios', 'cedula', 'TEXT');
+agregarColumnaSiFalta('usuarios', 'cargo', 'TEXT');
+agregarColumnaSiFalta('usuarios', 'foto_data_url', 'TEXT');
+agregarColumnaSiFalta('usuarios', 'empresa_principal_id', 'INTEGER REFERENCES empresas(id)');
 
 let transactionDepth = 0;
 

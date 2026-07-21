@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -19,10 +20,70 @@ import {
   Coins,
   HandCoins,
   Landmark as LandmarkIcon,
+  Home,
+  ChevronDown,
+  UserCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useEmpresa } from '../context/EmpresaContext';
 import BrandLogo from './BrandLogo';
+
+function TopBar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
+  return (
+    <header className="no-print h-14 shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+      <button
+        onClick={() => navigate('/seleccionar-empresa')}
+        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand-900 hover:bg-slate-50 rounded-md px-2.5 py-1.5 -ml-2.5"
+        title="Volver a la selección de empresa"
+      >
+        <Home size={18} strokeWidth={2} /> Inicio
+      </button>
+
+      <div className="relative">
+        <button onClick={() => setMenuAbierto((v) => !v)} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50">
+          {user?.fotoDataUrl ? (
+            <img src={user.fotoDataUrl} alt={user.nombre} className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">
+              {(user?.nombre || '?').slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <span className="text-sm font-medium text-slate-700 hidden sm:inline">{user?.nombre}</span>
+          <ChevronDown size={14} className="text-slate-400" />
+        </button>
+
+        {menuAbierto && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setMenuAbierto(false)} />
+            <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg border border-slate-200 shadow-lg z-20 py-1.5">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <div className="text-sm font-medium text-slate-700 truncate">{user?.nombre}</div>
+                <div className="text-xs text-slate-400 truncate">{user?.email}</div>
+              </div>
+              <Link
+                to="/perfil"
+                onClick={() => setMenuAbierto(false)}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              >
+                <UserCircle size={16} /> Mi Perfil
+              </Link>
+              <button
+                onClick={() => { logout(); navigate('/login'); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </header>
+  );
+}
 
 function linkClasses(isActive: boolean) {
   return `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
@@ -31,9 +92,8 @@ function linkClasses(isActive: boolean) {
 }
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { empresa } = useEmpresa();
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -152,20 +212,13 @@ export default function Layout() {
             </div>
           </div>
         </nav>
-        <div className="px-4 py-3 border-t border-slate-100 text-sm">
-          <div className="font-medium text-slate-700">{user?.nombre}</div>
-          <div className="text-slate-400 text-xs mb-2">{user?.email}</div>
-          <button
-            onClick={() => { logout(); navigate('/login'); }}
-            className="flex items-center gap-1.5 text-accent-600 hover:underline text-xs"
-          >
-            <LogOut size={13} /> Cerrar sesión
-          </button>
-        </div>
       </aside>
-      <main className="flex-1 min-w-0 overflow-x-hidden">
-        <Outlet />
-      </main>
+      <div className="flex-1 min-w-0 flex flex-col">
+        <TopBar />
+        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

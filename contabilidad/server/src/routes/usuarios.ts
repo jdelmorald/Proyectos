@@ -14,7 +14,15 @@ function otorgarEmpresas(usuarioId: number, empresaIds: number[]) {
 }
 
 usuariosRouter.get('/', (_req, res) => {
-  const usuarios = db.prepare('SELECT id, nombre, email, rol, activo, created_at FROM usuarios ORDER BY nombre').all() as { id: number }[];
+  const usuarios = db
+    .prepare(
+      `SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.created_at, u.cedula, u.cargo, u.foto_data_url,
+        u.empresa_principal_id, e.nombre AS empresa_principal_nombre
+       FROM usuarios u
+       LEFT JOIN empresas e ON e.id = u.empresa_principal_id
+       ORDER BY u.nombre`
+    )
+    .all() as { id: number }[];
   const empresasPorUsuario = db.prepare('SELECT usuario_id, empresa_id FROM usuario_empresas').all() as {
     usuario_id: number;
     empresa_id: number;
@@ -33,6 +41,10 @@ const crearSchema = z.object({
   password: z.string().min(6),
   rol: z.enum(['admin', 'operador']).default('operador'),
   empresaIds: z.array(z.number().int()).default([]),
+  cedula: z.string().max(30).optional().nullable(),
+  cargo: z.string().max(80).optional().nullable(),
+  fotoDataUrl: z.string().max(2_000_000).optional().nullable(),
+  empresaPrincipalId: z.number().int().optional().nullable(),
 });
 
 usuariosRouter.post('/', (req, res) => {
@@ -40,13 +52,16 @@ usuariosRouter.post('/', (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });
   }
-  const { nombre, email, password, rol, empresaIds } = parsed.data;
+  const { nombre, email, password, rol, empresaIds, cedula, cargo, fotoDataUrl, empresaPrincipalId } = parsed.data;
   const hash = bcrypt.hashSync(password, 10);
   try {
     const id = runInTransaction(() => {
       const info = db
-        .prepare('INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)')
-        .run(nombre, email, hash, rol);
+        .prepare(
+          `INSERT INTO usuarios (nombre, email, password_hash, rol, cedula, cargo, foto_data_url, empresa_principal_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(nombre, email, hash, rol, cedula ?? null, cargo ?? null, fotoDataUrl ?? null, empresaPrincipalId ?? null);
       const usuarioId = info.lastInsertRowid as number;
       otorgarEmpresas(usuarioId, empresaIds);
       return usuarioId;
@@ -63,6 +78,10 @@ const actualizarSchema = z.object({
   activo: z.boolean().optional(),
   password: z.string().min(6).optional(),
   empresaIds: z.array(z.number().int()).optional(),
+  cedula: z.string().max(30).optional().nullable(),
+  cargo: z.string().max(80).optional().nullable(),
+  fotoDataUrl: z.string().max(2_000_000).optional().nullable(),
+  empresaPrincipalId: z.number().int().optional().nullable(),
 });
 
 usuariosRouter.put('/:id', (req, res) => {
@@ -71,7 +90,7 @@ usuariosRouter.put('/:id', (req, res) => {
     return res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.flatten() });
   }
   const id = Number(req.params.id);
-  const { nombre, rol, activo, password, empresaIds } = parsed.data;
+  const { nombre, rol, activo, password, empresaIds, cedula, cargo, fotoDataUrl, empresaPrincipalId } = parsed.data;
 
   runInTransaction(() => {
     if (nombre !== undefined) db.prepare('UPDATE usuarios SET nombre = ? WHERE id = ?').run(nombre, id);
@@ -81,6 +100,10 @@ usuariosRouter.put('/:id', (req, res) => {
       const hash = bcrypt.hashSync(password, 10);
       db.prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?').run(hash, id);
     }
+    if (cedula !== undefined) db.prepare('UPDATE usuarios SET cedula = ? WHERE id = ?').run(cedula, id);
+    if (cargo !== undefined) db.prepare('UPDATE usuarios SET cargo = ? WHERE id = ?').run(cargo, id);
+    if (fotoDataUrl !== undefined) db.prepare('UPDATE usuarios SET foto_data_url = ? WHERE id = ?').run(fotoDataUrl, id);
+    if (empresaPrincipalId !== undefined) db.prepare('UPDATE usuarios SET empresa_principal_id = ? WHERE id = ?').run(empresaPrincipalId, id);
     if (empresaIds !== undefined) otorgarEmpresas(id, empresaIds);
   });
   res.json({ ok: true });

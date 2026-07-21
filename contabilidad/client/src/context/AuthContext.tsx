@@ -6,6 +6,11 @@ export interface AuthUser {
   nombre: string;
   email: string;
   rol: 'admin' | 'operador';
+  cedula: string | null;
+  cargo: string | null;
+  fotoDataUrl: string | null;
+  empresaPrincipalId: number | null;
+  empresaPrincipalNombre: string | null;
 }
 
 interface AuthContextValue {
@@ -13,6 +18,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  actualizarPerfil: (datos: { nombre?: string; cedula?: string | null; cargo?: string | null; fotoDataUrl?: string | null }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -45,7 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = '/login';
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
+  async function actualizarPerfil(datos: { nombre?: string; cedula?: string | null; cargo?: string | null; fotoDataUrl?: string | null }) {
+    const r = await api.put<{ user: AuthUser }>('/auth/perfil', datos);
+    setUser(r.user);
+  }
+
+  return <AuthContext.Provider value={{ user, loading, login, logout, actualizarPerfil }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

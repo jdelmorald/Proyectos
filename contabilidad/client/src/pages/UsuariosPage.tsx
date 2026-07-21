@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 
@@ -9,11 +9,26 @@ interface Usuario {
   rol: 'admin' | 'operador';
   activo: number;
   empresaIds: number[];
+  cedula: string | null;
+  cargo: string | null;
+  foto_data_url: string | null;
+  empresa_principal_id: number | null;
+  empresa_principal_nombre: string | null;
 }
 
 const VACIO = {
   nombre: '', email: '', password: '', rol: 'operador' as 'admin' | 'operador', empresaIds: [] as number[],
+  cedula: '', cargo: '', fotoDataUrl: null as string | null, empresaPrincipalId: '' as number | '',
 };
+
+function leerArchivoComoDataUrl(archivo: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(lector.result as string);
+    lector.onerror = () => reject(new Error('No se pudo leer el archivo'));
+    lector.readAsDataURL(archivo);
+  });
+}
 
 export default function UsuariosPage() {
   const { empresas } = useEmpresa();
@@ -37,16 +52,36 @@ export default function UsuariosPage() {
     }));
   }
 
+  async function onFotoChange(e: ChangeEvent<HTMLInputElement>) {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    if (archivo.size > 1_500_000) {
+      setError('La foto es muy pesada (máximo ~1.5 MB). Usa una imagen más liviana.');
+      return;
+    }
+    try {
+      const dataUrl = await leerArchivoComoDataUrl(archivo);
+      setForm((f) => ({ ...f, fotoDataUrl: dataUrl }));
+    } catch {
+      setError('No se pudo cargar la foto');
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     try {
+      const comun = {
+        nombre: form.nombre, rol: form.rol, empresaIds: form.empresaIds,
+        cedula: form.cedula || null, cargo: form.cargo || null, fotoDataUrl: form.fotoDataUrl,
+        empresaPrincipalId: form.empresaPrincipalId || null,
+      };
       if (editId) {
-        const body: Record<string, unknown> = { nombre: form.nombre, rol: form.rol, empresaIds: form.empresaIds };
+        const body: Record<string, unknown> = { ...comun };
         if (form.password) body.password = form.password;
         await api.put(`/usuarios/${editId}`, body);
       } else {
-        await api.post('/usuarios', form);
+        await api.post('/usuarios', { ...comun, email: form.email, password: form.password });
       }
       setForm(VACIO);
       setEditId(null);
@@ -58,7 +93,11 @@ export default function UsuariosPage() {
 
   function editar(u: Usuario) {
     setEditId(u.id);
-    setForm({ nombre: u.nombre, email: u.email, password: '', rol: u.rol, empresaIds: u.empresaIds });
+    setForm({
+      nombre: u.nombre, email: u.email, password: '', rol: u.rol, empresaIds: u.empresaIds,
+      cedula: u.cedula ?? '', cargo: u.cargo ?? '', fotoDataUrl: u.foto_data_url,
+      empresaPrincipalId: u.empresa_principal_id ?? '',
+    });
     setError(null);
   }
 
@@ -83,6 +122,20 @@ export default function UsuariosPage() {
       <h1 className="text-2xl font-bold text-slate-800 mb-4">Usuarios</h1>
 
       <form onSubmit={onSubmit} className="bg-white rounded-lg border border-slate-200 p-4 mb-6 space-y-3">
+        <div className="flex items-center gap-4">
+          {form.fotoDataUrl ? (
+            <img src={form.fotoDataUrl} alt="Foto" className="h-14 w-14 rounded-full object-cover border border-slate-200" />
+          ) : (
+            <div className="h-14 w-14 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-lg font-bold">
+              {(form.nombre || '?').slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Foto de perfil</label>
+            <input type="file" accept="image/*" onChange={onFotoChange} className="text-xs" />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
           <input
             required
@@ -115,6 +168,26 @@ export default function UsuariosPage() {
           >
             <option value="operador">Operador</option>
             <option value="admin">Administrador</option>
+          </select>
+          <input
+            placeholder="Cédula de identidad"
+            value={form.cedula}
+            onChange={(e) => setForm({ ...form, cedula: e.target.value })}
+            className="rounded-md border border-slate-300 px-3 py-2"
+          />
+          <input
+            placeholder="Cargo (ej. Analista Contable)"
+            value={form.cargo}
+            onChange={(e) => setForm({ ...form, cargo: e.target.value })}
+            className="rounded-md border border-slate-300 px-3 py-2"
+          />
+          <select
+            value={form.empresaPrincipalId}
+            onChange={(e) => setForm({ ...form, empresaPrincipalId: e.target.value ? Number(e.target.value) : '' })}
+            className="rounded-md border border-slate-300 px-3 py-2"
+          >
+            <option value="">Empresa (para el perfil)</option>
+            {empresas.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
           </select>
         </div>
 
@@ -150,7 +223,9 @@ export default function UsuariosPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-500 text-left">
             <tr>
+              <th className="px-4 py-2"></th>
               <th className="px-4 py-2">Nombre</th>
+              <th className="px-4 py-2">Cargo</th>
               <th className="px-4 py-2">Correo</th>
               <th className="px-4 py-2">Rol</th>
               <th className="px-4 py-2">Empresas</th>
@@ -161,7 +236,17 @@ export default function UsuariosPage() {
           <tbody>
             {items.map((u) => (
               <tr key={u.id} className="border-t border-slate-100">
+                <td className="px-4 py-2">
+                  {u.foto_data_url ? (
+                    <img src={u.foto_data_url} alt={u.nombre} className="h-8 w-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">
+                      {u.nombre.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-2 font-medium text-slate-700">{u.nombre}</td>
+                <td className="px-4 py-2 text-xs text-slate-500">{u.cargo || '—'}</td>
                 <td className="px-4 py-2">{u.email}</td>
                 <td className="px-4 py-2 capitalize">{u.rol}</td>
                 <td className="px-4 py-2 text-xs text-slate-500 max-w-xs">{nombresEmpresas(u.empresaIds)}</td>
