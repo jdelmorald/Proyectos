@@ -64,6 +64,8 @@ export default function BalanceGeneralPage() {
             titulo="Balance General"
             subtitulo={`Al ${hasta}`}
             nombreArchivo="balance-general"
+            metadatos={[{ label: 'Periodo', valor: `Al ${hasta}` }, { label: 'Versión', valor: '1.0' }]}
+            firmas={{ izquierda: 'Representante Legal', derecha: 'Contador Público' }}
             columnas={[
               { header: 'Sección', key: 'seccion' },
               { header: 'Código', key: 'codigo' },
@@ -72,17 +74,39 @@ export default function BalanceGeneralPage() {
             ]}
             filas={[
               ...datos.activos.map((l) => ({ seccion: 'Activo', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
-              { seccion: '', codigo: '', nombre: 'Total Activo', saldo: datos.totalActivo },
+              { seccion: '', codigo: '', nombre: 'Total Activo', saldo: datos.totalActivo, _estilo: 'total' },
               ...datos.pasivos.map((l) => ({ seccion: 'Pasivo', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
-              { seccion: '', codigo: '', nombre: 'Total Pasivo', saldo: datos.totalPasivo },
+              { seccion: '', codigo: '', nombre: 'Total Pasivo', saldo: datos.totalPasivo, _estilo: 'subtotal' },
               ...datos.patrimonio.map((l) => ({ seccion: 'Patrimonio', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
               { seccion: 'Patrimonio', codigo: '', nombre: 'Utilidad del ejercicio', saldo: datos.utilidadEjercicio },
-              { seccion: '', codigo: '', nombre: 'Total Patrimonio', saldo: datos.totalPatrimonio },
+              { seccion: '', codigo: '', nombre: 'Total Patrimonio', saldo: datos.totalPatrimonio, _estilo: 'subtotal' },
             ]}
             filaTotales={{
               seccion: '', codigo: '',
               nombre: datos.cuadra ? 'Total Pasivo + Patrimonio (cuadra ✓)' : 'Total Pasivo + Patrimonio (NO cuadra)',
               saldo: datos.totalPasivoMasPatrimonio,
+            }}
+            pdfDosColumnas={{
+              izquierda: {
+                titulo: 'ACTIVOS',
+                columnas: [{ header: 'Código', key: 'codigo' }, { header: 'Cuenta', key: 'nombre' }, { header: 'Saldo', key: 'saldo', align: 'right' }],
+                filas: [
+                  ...datos.activos.map((l) => ({ codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+                  { codigo: '', nombre: 'TOTAL ACTIVOS', saldo: datos.totalActivo, _estilo: 'total' },
+                ],
+              },
+              derecha: {
+                titulo: 'PASIVOS Y PATRIMONIO',
+                columnas: [{ header: 'Código', key: 'codigo' }, { header: 'Cuenta', key: 'nombre' }, { header: 'Saldo', key: 'saldo', align: 'right' }],
+                filas: [
+                  ...datos.pasivos.map((l) => ({ codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+                  { codigo: '', nombre: 'Total Pasivo', saldo: datos.totalPasivo, _estilo: 'subtotal' },
+                  ...datos.patrimonio.map((l) => ({ codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
+                  { codigo: '', nombre: 'Utilidad del ejercicio', saldo: datos.utilidadEjercicio },
+                  { codigo: '', nombre: 'Total Patrimonio', saldo: datos.totalPatrimonio, _estilo: 'subtotal' },
+                  { codigo: '', nombre: 'TOTAL PASIVO + PATRIMONIO', saldo: datos.totalPasivoMasPatrimonio, _estilo: 'total' },
+                ],
+              },
             }}
           />
         )}

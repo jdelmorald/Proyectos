@@ -70,6 +70,7 @@ export default function EstadoResultadosPage() {
             titulo="Estado de Resultados"
             subtitulo={`Del ${desde} al ${hasta}`}
             nombreArchivo="estado-resultados"
+            metadatos={[{ label: 'Periodo', valor: `${desde} al ${hasta}` }, { label: 'Versión', valor: '1.0' }]}
             columnas={[
               { header: 'Sección', key: 'seccion' },
               { header: 'Código', key: 'codigo' },
@@ -78,12 +79,12 @@ export default function EstadoResultadosPage() {
             ]}
             filas={[
               ...datos.ingresos.map((l) => ({ seccion: 'Ingresos', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
-              { seccion: '', codigo: '', nombre: 'Total Ingresos', saldo: datos.totalIngresos },
+              { seccion: '', codigo: '', nombre: 'Total Ingresos', saldo: datos.totalIngresos, _estilo: 'subtotal' },
               ...datos.costos.map((l) => ({ seccion: 'Costos', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
-              { seccion: '', codigo: '', nombre: 'Total Costos', saldo: datos.totalCostos },
-              { seccion: '', codigo: '', nombre: 'Utilidad Bruta', saldo: datos.utilidadBruta },
+              { seccion: '', codigo: '', nombre: 'Total Costos', saldo: datos.totalCostos, _estilo: 'subtotal' },
+              { seccion: '', codigo: '', nombre: 'Utilidad Bruta', saldo: datos.utilidadBruta, _estilo: 'subtotal' },
               ...datos.gastos.map((l) => ({ seccion: 'Gastos', codigo: l.codigo, nombre: l.nombre, saldo: l.saldo })),
-              { seccion: '', codigo: '', nombre: 'Total Gastos', saldo: datos.totalGastos },
+              { seccion: '', codigo: '', nombre: 'Total Gastos', saldo: datos.totalGastos, _estilo: 'subtotal' },
             ]}
             filaTotales={{ seccion: '', codigo: '', nombre: 'Utilidad Neta del Ejercicio', saldo: datos.utilidadNeta }}
           />

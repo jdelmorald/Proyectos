@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { CellHookData } from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 
 export interface EmpresaExport {
@@ -7,12 +7,26 @@ export interface EmpresaExport {
   rif?: string | null;
   logo_data_url?: string | null;
   color?: string | null;
+  moneda?: string | null;
 }
 
 export interface ColumnaExport {
   header: string;
   key: string;
   align?: 'left' | 'right' | 'center';
+}
+
+/**
+ * Una fila normal se pinta como cualquier otra. `_estilo: 'subtotal'` la resalta
+ * en un tono claro del color de la empresa (p.ej. "Total Activo Corriente");
+ * `_estilo: 'total'` la pinta como barra sólida (p.ej. "TOTAL ACTIVOS").
+ */
+type EstiloFila = 'subtotal' | 'total' | undefined;
+
+export interface BloqueColumnas {
+  titulo: string;
+  columnas: ColumnaExport[];
+  filas: any[];
 }
 
 export interface ExportOptions {
@@ -23,6 +37,12 @@ export interface ExportOptions {
   filas: any[];
   filaTotales?: Record<string, any>;
   nombreArchivo: string;
+  /** Etiquetas para la fila de datos a la derecha del encabezado (Periodo, Versión, etc.). */
+  metadatos?: { label: string; valor: string }[];
+  /** Si se define, el PDF dibuja dos tablas lado a lado en vez de una sola (p.ej. Activo | Pasivo+Patrimonio). El Excel siempre usa columnas/filas planas. */
+  pdfDosColumnas?: { izquierda: BloqueColumnas; derecha: BloqueColumnas };
+  /** Líneas de firma al pie del PDF (solo aplica a estados financieros formales). */
+  firmas?: { izquierda: string; derecha: string };
 }
 
 function formatearCelda(v: unknown): string {
@@ -37,6 +57,10 @@ function hexARgb(hex?: string | null): [number, number, number] {
   return [(valor >> 16) & 255, (valor >> 8) & 255, valor & 255];
 }
 
+function aclarar([r, g, b]: [number, number, number], factor: number): [number, number, number] {
+  return [Math.round(r + (255 - r) * factor), Math.round(g + (255 - g) * factor), Math.round(b + (255 - b) * factor)];
+}
+
 function formatoImagen(dataUrl: string): 'PNG' | 'JPEG' | 'WEBP' {
   if (dataUrl.startsWith('data:image/jpeg') || dataUrl.startsWith('data:image/jpg')) return 'JPEG';
   if (dataUrl.startsWith('data:image/webp')) return 'WEBP';
@@ -45,6 +69,10 @@ function formatoImagen(dataUrl: string): 'PNG' | 'JPEG' | 'WEBP' {
 
 function fechaHoraActual(): string {
   return new Date().toLocaleString('es-VE');
+}
+
+function fechaActual(): string {
+  return new Date().toLocaleDateString('es-VE');
 }
 
 function descargarBlob(blob: Blob, nombreArchivo: string) {
@@ -58,61 +86,198 @@ function descargarBlob(blob: Blob, nombreArchivo: string) {
   URL.revokeObjectURL(url);
 }
 
-export function exportarPDF(opts: ExportOptions) {
-  const { empresa, titulo, subtitulo, columnas, filas, filaTotales, nombreArchivo } = opts;
-  const doc = new jsPDF({ orientation: columnas.length >= 6 ? 'landscape' : 'portrait' });
-  const marginX = 14;
-  const y0 = 15;
+const MARGEN = 14;
+
+/** Dibuja el bloque de tres zonas (empresa | título | metadatos) y la línea divisoria. Devuelve el Y donde puede empezar el contenido. */
+function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [number, number, number]): number {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const { empresa, titulo, subtitulo, metadatos } = opts;
 
   if (empresa?.logo_data_url) {
     try {
-      doc.addImage(empresa.logo_data_url, formatoImagen(empresa.logo_data_url), marginX, y0, 18, 18, undefined, 'FAST');
+      doc.addImage(empresa.logo_data_url, formatoImagen(empresa.logo_data_url), MARGEN, 9, 16, 16, undefined, 'FAST');
     } catch {
-      // Si el navegador guardó el logo en un formato que jsPDF no reconoce, se omite y sigue el resto del documento.
+      // Formato de imagen no reconocido por jsPDF: se omite el logo y sigue el resto del documento.
     }
   }
-  const textX = empresa?.logo_data_url ? marginX + 24 : marginX;
-  doc.setFontSize(13);
+  const textX = empresa?.logo_data_url ? MARGEN + 20 : MARGEN;
   doc.setFont('helvetica', 'bold');
-  doc.text(empresa?.nombre || 'Sistema Contable', textX, y0 + 6);
-  doc.setFontSize(9);
+  doc.setFontSize(11.5);
+  doc.setTextColor(...colorPrincipal);
+  doc.text(empresa?.nombre || 'Sistema Contable', textX, 14);
   doc.setFont('helvetica', 'normal');
-  if (empresa?.rif) doc.text(`RIF: ${empresa.rif}`, textX, y0 + 11);
-  doc.setFontSize(11);
+  doc.setFontSize(7.5);
+  doc.setTextColor(110);
+  if (empresa?.rif) doc.text(`RIF: ${empresa.rif}`, textX, 19);
+
   doc.setFont('helvetica', 'bold');
-  doc.text(titulo, textX, y0 + 18);
-  let y = y0 + 23;
+  doc.setFontSize(11);
+  doc.setTextColor(30, 41, 59);
+  doc.text(titulo.toUpperCase(), pageWidth / 2, 13, { align: 'center' });
+  let yTitulo = 18;
   if (subtitulo) {
-    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(subtitulo, textX, y);
-    y += 5;
+    doc.setFontSize(8.5);
+    doc.setTextColor(90);
+    doc.text(subtitulo, pageWidth / 2, yTitulo, { align: 'center' });
+    yTitulo += 4.5;
   }
-  y = Math.max(y, y0 + 22);
+  if (empresa?.moneda) {
+    doc.setFontSize(7.5);
+    doc.setTextColor(140);
+    doc.text(`(Cifras expresadas en ${empresa.moneda})`, pageWidth / 2, yTitulo, { align: 'center' });
+    yTitulo += 4.5;
+  }
 
-  const body = filas.map((f) => columnas.map((c) => formatearCelda(f[c.key])));
-  const foot = filaTotales ? [columnas.map((c) => formatearCelda(filaTotales[c.key]))] : undefined;
-
-  autoTable(doc, {
-    startY: y,
-    head: [columnas.map((c) => c.header)],
-    body,
-    foot,
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: hexARgb(empresa?.color) },
-    footStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
-    columnStyles: Object.fromEntries(columnas.map((c, i) => [i, { halign: c.align || 'left' }])),
+  const filasMetadatos = [{ label: 'Fecha de emisión', valor: fechaActual() }, ...(metadatos || [])];
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.3);
+  doc.setTextColor(90);
+  filasMetadatos.forEach((m, i) => {
+    const yy = 10 + i * 4;
+    doc.text(`${m.label}: ${m.valor}`, pageWidth - MARGEN, yy, { align: 'right' });
   });
 
+  const yLinea = Math.max(24, yTitulo, 10 + filasMetadatos.length * 4) + 3;
+  doc.setDrawColor(...colorPrincipal);
+  doc.setLineWidth(0.6);
+  doc.line(MARGEN, yLinea, pageWidth - MARGEN, yLinea);
+
+  return yLinea + 6;
+}
+
+function dibujarPie(doc: jsPDF, generadoEl: string) {
   const totalPaginas = doc.getNumberOfPages();
   for (let p = 1; p <= totalPaginas; p++) {
     doc.setPage(p);
-    const alturaPagina = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setDrawColor(225);
+    doc.setLineWidth(0.2);
+    doc.line(MARGEN, pageHeight - 13, pageWidth - MARGEN, pageHeight - 13);
     doc.setFontSize(7);
     doc.setTextColor(150);
-    doc.text(`Generado el ${fechaHoraActual()} · página ${p} de ${totalPaginas}`, marginX, alturaPagina - 8);
+    doc.text(`Generado el ${generadoEl}`, MARGEN, pageHeight - 8);
+    doc.text(`Página ${p} de ${totalPaginas}`, pageWidth - MARGEN, pageHeight - 8, { align: 'right' });
+  }
+}
+
+function dibujarFirmas(doc: jsPDF, y: number, firmas: { izquierda: string; derecha: string }): void {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  if (y > pageHeight - 45) {
+    doc.addPage();
+    y = 30;
+  } else {
+    y += 20;
+  }
+  const anchoLinea = 65;
+  const xIzq = pageWidth / 2 - anchoLinea - 8;
+  const xDer = pageWidth / 2 + 8;
+  doc.setDrawColor(30, 41, 59);
+  doc.setLineWidth(0.3);
+  doc.line(xIzq, y, xIzq + anchoLinea, y);
+  doc.line(xDer, y, xDer + anchoLinea, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(50);
+  doc.text(firmas.izquierda, xIzq + anchoLinea / 2, y + 5, { align: 'center' });
+  doc.text(firmas.derecha, xDer + anchoLinea / 2, y + 5, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setTextColor(140);
+  doc.text('C.I.: ______________________', xIzq + anchoLinea / 2, y + 10, { align: 'center' });
+  doc.text('C.I.: ______________________', xDer + anchoLinea / 2, y + 10, { align: 'center' });
+}
+
+function estilosTabla(colorPrincipal: [number, number, number]) {
+  return {
+    styles: { fontSize: 8.3, cellPadding: 2.6, valign: 'middle' as const, lineColor: [230, 232, 236] as [number, number, number], lineWidth: 0.1 },
+    headStyles: { fillColor: colorPrincipal, textColor: 255, fontStyle: 'bold' as const, fontSize: 8.3 },
+    alternateRowStyles: { fillColor: [248, 250, 252] as [number, number, number] },
+    footStyles: { fillColor: colorPrincipal, textColor: 255, fontStyle: 'bold' as const },
+  };
+}
+
+function crearDidParseCell(filasOriginales: any[], colorPrincipal: [number, number, number]) {
+  const colorSubtotal = aclarar(colorPrincipal, 0.85);
+  return (data: CellHookData) => {
+    if (data.row.section !== 'body') return;
+    const original = filasOriginales[data.row.index];
+    const estilo: EstiloFila = original?._estilo;
+    if (estilo === 'total') {
+      data.cell.styles.fillColor = colorPrincipal;
+      data.cell.styles.textColor = 255;
+      data.cell.styles.fontStyle = 'bold';
+    } else if (estilo === 'subtotal') {
+      data.cell.styles.fillColor = colorSubtotal;
+      data.cell.styles.textColor = colorPrincipal;
+      data.cell.styles.fontStyle = 'bold';
+    }
+  };
+}
+
+export function exportarPDF(opts: ExportOptions) {
+  const { empresa, columnas, filas, filaTotales, nombreArchivo, pdfDosColumnas, firmas } = opts;
+  const colorPrincipal = hexARgb(empresa?.color);
+  const orientacion = !pdfDosColumnas && columnas.length >= 6 ? 'landscape' : 'portrait';
+  const doc = new jsPDF({ orientation: orientacion });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  let y = dibujarEncabezado(doc, opts, colorPrincipal);
+  const compartido = estilosTabla(colorPrincipal);
+
+  if (pdfDosColumnas) {
+    const gap = 6;
+    const anchoColumna = (pageWidth - MARGEN * 2 - gap) / 2;
+    const xIzq = MARGEN;
+    const xDer = MARGEN + anchoColumna + gap;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...colorPrincipal);
+    doc.text(pdfDosColumnas.izquierda.titulo, xIzq, y);
+    doc.text(pdfDosColumnas.derecha.titulo, xDer, y);
+    const startY = y + 3;
+
+    autoTable(doc, {
+      startY,
+      margin: { left: xIzq, right: pageWidth - xIzq - anchoColumna },
+      head: [pdfDosColumnas.izquierda.columnas.map((c) => c.header)],
+      body: pdfDosColumnas.izquierda.filas.map((f) => pdfDosColumnas.izquierda.columnas.map((c) => formatearCelda(f[c.key]))),
+      columnStyles: Object.fromEntries(pdfDosColumnas.izquierda.columnas.map((c, i) => [i, { halign: c.align || 'left' }])),
+      didParseCell: crearDidParseCell(pdfDosColumnas.izquierda.filas, colorPrincipal),
+      ...compartido,
+    });
+    const finalYIzq = (doc as any).lastAutoTable.finalY as number;
+
+    autoTable(doc, {
+      startY,
+      margin: { left: xDer, right: MARGEN },
+      head: [pdfDosColumnas.derecha.columnas.map((c) => c.header)],
+      body: pdfDosColumnas.derecha.filas.map((f) => pdfDosColumnas.derecha.columnas.map((c) => formatearCelda(f[c.key]))),
+      columnStyles: Object.fromEntries(pdfDosColumnas.derecha.columnas.map((c, i) => [i, { halign: c.align || 'left' }])),
+      didParseCell: crearDidParseCell(pdfDosColumnas.derecha.filas, colorPrincipal),
+      ...compartido,
+    });
+    const finalYDer = (doc as any).lastAutoTable.finalY as number;
+    y = Math.max(finalYIzq, finalYDer);
+  } else {
+    const body = filas.map((f) => columnas.map((c) => formatearCelda(f[c.key])));
+    const foot = filaTotales ? [columnas.map((c) => formatearCelda(filaTotales[c.key]))] : undefined;
+    autoTable(doc, {
+      startY: y,
+      head: [columnas.map((c) => c.header)],
+      body,
+      foot,
+      columnStyles: Object.fromEntries(columnas.map((c, i) => [i, { halign: c.align || 'left' }])),
+      didParseCell: crearDidParseCell(filas, colorPrincipal),
+      ...compartido,
+    });
+    y = (doc as any).lastAutoTable.finalY as number;
   }
 
+  if (firmas) dibujarFirmas(doc, y, firmas);
+  dibujarPie(doc, fechaHoraActual());
   doc.save(`${nombreArchivo}.pdf`);
 }
 
@@ -123,29 +288,40 @@ export async function exportarExcel(opts: ExportOptions) {
   libro.creator = 'Sistema Contable Delder';
   libro.created = new Date();
   const hoja = libro.addWorksheet(titulo.slice(0, 31) || 'Reporte');
+  const colorArgb = 'FF' + hexARgb(empresa?.color).map((c) => c.toString(16).padStart(2, '0')).join('').toUpperCase();
 
-  hoja.addRow([empresa?.nombre || 'Sistema Contable']).font = { bold: true, size: 14 };
+  hoja.addRow([empresa?.nombre || 'Sistema Contable']).font = { bold: true, size: 14, color: { argb: colorArgb } };
   if (empresa?.rif) hoja.addRow([`RIF: ${empresa.rif}`]);
   hoja.addRow([titulo]).font = { bold: true, size: 12 };
   if (subtitulo) hoja.addRow([subtitulo]);
+  if (empresa?.moneda) hoja.addRow([`Cifras expresadas en ${empresa.moneda}`]).font = { italic: true, size: 8, color: { argb: 'FF888888' } };
   hoja.addRow([`Generado el ${fechaHoraActual()}`]).font = { italic: true, size: 9, color: { argb: 'FF888888' } };
   hoja.addRow([]);
 
   const filaEncabezado = hoja.addRow(columnas.map((c) => c.header));
-  filaEncabezado.font = { bold: true };
+  filaEncabezado.font = { bold: true, color: { argb: 'FFFFFFFF' } };
   filaEncabezado.eachCell((celda) => {
-    celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+    celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorArgb } };
   });
 
   for (const f of filas) {
-    hoja.addRow(columnas.map((c) => (typeof f[c.key] === 'number' ? (f[c.key] as number) : formatearCelda(f[c.key]))));
+    const fila = hoja.addRow(columnas.map((c) => (typeof f[c.key] === 'number' ? (f[c.key] as number) : formatearCelda(f[c.key]))));
+    const estilo: EstiloFila = f?._estilo;
+    if (estilo === 'total') {
+      fila.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      fila.eachCell((celda) => { celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorArgb } }; });
+    } else if (estilo === 'subtotal') {
+      fila.font = { bold: true, color: { argb: colorArgb } };
+      fila.eachCell((celda) => { celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; });
+    }
   }
 
   if (filaTotales) {
     const filaTot = hoja.addRow(
       columnas.map((c) => (typeof filaTotales[c.key] === 'number' ? (filaTotales[c.key] as number) : formatearCelda(filaTotales[c.key])))
     );
-    filaTot.font = { bold: true };
+    filaTot.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    filaTot.eachCell((celda) => { celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorArgb } }; });
   }
 
   hoja.columns.forEach((col) => { col.width = 20; });
