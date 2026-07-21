@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Registro {
   id: number;
@@ -131,10 +132,10 @@ export default function FlujoProyectadoPage() {
             {resumen.map((r) => (
               <tr key={r.periodo} className="border-t border-slate-100">
                 <td className="px-4 py-2 font-medium">{r.periodo}</td>
-                <td className="px-4 py-2 text-right text-accent-700">{r.ingresos.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right text-red-600">{r.egresos.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right font-medium">{r.neto.toFixed(2)}</td>
-                <td className={`px-4 py-2 text-right font-bold ${r.acumulado >= 0 ? 'text-accent-700' : 'text-red-600'}`}>{r.acumulado.toFixed(2)}</td>
+                <td className="px-4 py-2 text-right text-accent-700">{formatearMonto(r.ingresos)}</td>
+                <td className="px-4 py-2 text-right text-red-600">{formatearMonto(r.egresos)}</td>
+                <td className="px-4 py-2 text-right font-medium">{formatearMonto(r.neto)}</td>
+                <td className={`px-4 py-2 text-right font-bold ${r.acumulado >= 0 ? 'text-accent-700' : 'text-red-600'}`}>{formatearMonto(r.acumulado)}</td>
               </tr>
             ))}
             {resumen.length === 0 && <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">Sin proyecciones registradas</td></tr>}
@@ -176,7 +177,7 @@ export default function FlujoProyectadoPage() {
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.categoria === 'ingreso' ? 'bg-accent-100 text-accent-700' : 'bg-red-100 text-red-700'}`}>{r.categoria}</span>
                 </td>
                 <td className="px-4 py-2">{r.concepto}</td>
-                <td className="px-4 py-2 text-right">{r.monto_proyectado.toFixed(2)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(r.monto_proyectado)}</td>
                 <td className="px-4 py-2 text-right"><button onClick={() => eliminar(r.id)} className="text-red-600 hover:underline text-xs">Eliminar</button></td>
               </tr>
             ))}

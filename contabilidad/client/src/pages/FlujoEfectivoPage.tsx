@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface FlujoEfectivo {
   operacion: number;
@@ -61,25 +62,25 @@ export default function FlujoEfectivoPage() {
         <div className="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100">
           <div className="flex justify-between px-4 py-3 text-sm">
             <span>Efectivo generado (usado) en Operación</span>
-            <span className={datos.operacion >= 0 ? 'text-accent-700' : 'text-red-600'}>{datos.operacion.toFixed(2)}</span>
+            <span className={datos.operacion >= 0 ? 'text-accent-700' : 'text-red-600'}>{formatearMonto(datos.operacion)}</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
             <span>Efectivo generado (usado) en Inversión</span>
-            <span className={datos.inversion >= 0 ? 'text-accent-700' : 'text-red-600'}>{datos.inversion.toFixed(2)}</span>
+            <span className={datos.inversion >= 0 ? 'text-accent-700' : 'text-red-600'}>{formatearMonto(datos.inversion)}</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
             <span>Efectivo generado (usado) en Financiamiento</span>
-            <span className={datos.financiamiento >= 0 ? 'text-accent-700' : 'text-red-600'}>{datos.financiamiento.toFixed(2)}</span>
+            <span className={datos.financiamiento >= 0 ? 'text-accent-700' : 'text-red-600'}>{formatearMonto(datos.financiamiento)}</span>
           </div>
           {datos.sinClasificar !== 0 && (
             <div className="flex justify-between px-4 py-3 text-sm text-slate-500">
               <span>Movimientos sin clasificar (revisar Plan de Cuentas)</span>
-              <span>{datos.sinClasificar.toFixed(2)}</span>
+              <span>{formatearMonto(datos.sinClasificar)}</span>
             </div>
           )}
           <div className="flex justify-between px-4 py-3 text-base font-bold bg-slate-50">
             <span>Flujo de Efectivo Neto del periodo</span>
-            <span>{datos.flujoNeto.toFixed(2)}</span>
+            <span>{formatearMonto(datos.flujoNeto)}</span>
           </div>
         </div>
       )}

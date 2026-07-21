@@ -15,6 +15,7 @@ import {
 import { Wallet, Landmark, PiggyBank, TrendingUp, NotebookPen, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import { formatearMonto } from '../utils/formato';
 
 interface SerieMes {
   mes: string;
@@ -54,9 +55,7 @@ const MES_LABEL: Record<string, string> = {
   '07': 'Jul', '08': 'Ago', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dic',
 };
 
-function fmt(n: number) {
-  return n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+const fmt = formatearMonto;
 
 function StatCard({
   icon,

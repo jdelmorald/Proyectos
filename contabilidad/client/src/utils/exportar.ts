@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable, { CellHookData } from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
+import { formatearMonto } from './formato';
 
 export interface EmpresaExport {
   nombre: string;
@@ -55,7 +56,7 @@ export interface ExportOptions {
 
 function formatearCelda(v: unknown): string {
   if (v === null || v === undefined) return '';
-  if (typeof v === 'number') return v.toFixed(2);
+  if (typeof v === 'number') return formatearMonto(v);
   return String(v);
 }
 
@@ -127,17 +128,42 @@ function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [num
     }
   }
   const textX = empresa?.logo_data_url ? MARGEN + 20 : MARGEN;
+  // El bloque de empresa (izquierda) y el título centrado comparten la misma
+  // fila: si el nombre o la razón social son largos (p.ej. una razón social
+  // completa), el texto puede extenderse lo suficiente para chocar con el
+  // título/subtítulo centrado. Se mide primero cuánto ocupa realmente el
+  // bloque central (título/subtítulo/moneda, el más ancho de los tres) para
+  // saber dónde empieza de verdad, y se limita el ancho de la izquierda a lo
+  // que cabe antes de ese borde, envolviendo a una segunda línea si hace falta.
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  let anchoCentro = doc.getTextWidth(titulo.toUpperCase());
+  if (subtitulo) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    anchoCentro = Math.max(anchoCentro, doc.getTextWidth(subtitulo));
+  }
+  if (empresa?.moneda) {
+    doc.setFontSize(7.5);
+    anchoCentro = Math.max(anchoCentro, doc.getTextWidth(`(Cifras expresadas en ${empresa.moneda})`));
+  }
+  const bordeCentroIzquierdo = pageWidth / 2 - anchoCentro / 2 - 6;
+  const anchoMaxIzquierdo = Math.max(30, bordeCentroIzquierdo - textX);
   let yIzq = 14;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11.5);
   doc.setTextColor(...colorPrincipal);
-  doc.text(empresa?.nombre || 'Sistema Contable', textX, yIzq);
+  const lineasNombre: string[] = doc.splitTextToSize(empresa?.nombre || 'Sistema Contable', anchoMaxIzquierdo);
+  lineasNombre.forEach((linea, i) => doc.text(linea, textX, yIzq + i * 4.5));
+  yIzq += (lineasNombre.length - 1) * 4.5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(110);
   if (empresa?.razon_social) {
     yIzq += 4.5;
-    doc.text(empresa.razon_social, textX, yIzq);
+    const lineasRazonSocial: string[] = doc.splitTextToSize(empresa.razon_social, anchoMaxIzquierdo);
+    lineasRazonSocial.forEach((linea, i) => doc.text(linea, textX, yIzq + i * 3.6));
+    yIzq += (lineasRazonSocial.length - 1) * 3.6;
   }
   if (empresa?.rif) {
     yIzq += 4.5;
@@ -342,6 +368,12 @@ export async function exportarExcel(opts: ExportOptions) {
 
   for (const f of filas) {
     const fila = hoja.addRow(columnas.map((c) => (typeof f[c.key] === 'number' ? (f[c.key] as number) : formatearCelda(f[c.key]))));
+    // Formato de celda nativo de Excel (no solo texto) para que las cifras se
+    // vean agrupadas por miles igual que en pantalla y el PDF, respetando el
+    // separador de miles/decimales de la configuración regional de quien abre el archivo.
+    columnas.forEach((c, i) => {
+      if (typeof f[c.key] === 'number') fila.getCell(i + 1).numFmt = '#,##0.00';
+    });
     const estilo: EstiloFila = f?._estilo;
     if (estilo === 'total') {
       fila.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -356,6 +388,9 @@ export async function exportarExcel(opts: ExportOptions) {
     const filaTot = hoja.addRow(
       columnas.map((c) => (typeof filaTotales[c.key] === 'number' ? (filaTotales[c.key] as number) : formatearCelda(filaTotales[c.key])))
     );
+    columnas.forEach((c, i) => {
+      if (typeof filaTotales[c.key] === 'number') filaTot.getCell(i + 1).numFmt = '#,##0.00';
+    });
     filaTot.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     filaTot.eachCell((celda) => { celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorArgb } }; });
   }

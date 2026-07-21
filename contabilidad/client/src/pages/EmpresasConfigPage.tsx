@@ -2,6 +2,7 @@ import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import { useAuth } from '../context/AuthContext';
+import { formatearMonto } from '../utils/formato';
 
 interface Empresa {
   id: number;
@@ -224,7 +225,7 @@ export default function EmpresasConfigPage() {
                 <td className="px-4 py-2">{e.moneda}</td>
                 <td className="px-4 py-2">{e.municipio || '—'}</td>
                 <td className="px-4 py-2">{e.alicuota_municipal ? `${e.alicuota_municipal}%` : '—'}</td>
-                <td className="px-4 py-2">{e.valor_ut ? e.valor_ut.toFixed(2) : '—'}</td>
+                <td className="px-4 py-2">{e.valor_ut ? formatearMonto(e.valor_ut) : '—'}</td>
                 {!soloLectura && (
                   <td className="px-4 py-2 text-right whitespace-nowrap space-x-3">
                     <button onClick={() => editar(e)} className="text-brand-700 hover:underline">Editar</button>

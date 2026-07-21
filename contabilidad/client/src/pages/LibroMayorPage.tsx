@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Cuenta {
   id: number;
@@ -97,9 +98,9 @@ export default function LibroMayorPage() {
                     <td className="px-4 py-2">{m.numero}</td>
                     <td className="px-4 py-2">{m.fecha}</td>
                     <td className="px-4 py-2 text-slate-500">{m.descripcion}</td>
-                    <td className="px-4 py-2 text-right">{m.debe > 0 ? m.debe.toFixed(2) : ''}</td>
-                    <td className="px-4 py-2 text-right">{m.haber > 0 ? m.haber.toFixed(2) : ''}</td>
-                    <td className="px-4 py-2 text-right font-medium">{m.saldo.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right">{m.debe > 0 ? formatearMonto(m.debe) : ''}</td>
+                    <td className="px-4 py-2 text-right">{m.haber > 0 ? formatearMonto(m.haber) : ''}</td>
+                    <td className="px-4 py-2 text-right font-medium">{formatearMonto(m.saldo)}</td>
                   </tr>
                 ))}
                 {datos.movimientos.length === 0 && (
@@ -109,7 +110,7 @@ export default function LibroMayorPage() {
               <tfoot>
                 <tr className="border-t-2 border-slate-800 font-bold">
                   <td className="px-4 py-2" colSpan={5}>Saldo final</td>
-                  <td className="px-4 py-2 text-right">{datos.saldoFinal.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right">{formatearMonto(datos.saldoFinal)}</td>
                 </tr>
               </tfoot>
             </table>

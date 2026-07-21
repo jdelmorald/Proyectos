@@ -43,7 +43,7 @@ const EMPRESAS = [
   },
   {
     nombre: 'Indelderca', rif: 'J-502893873', razonSocial: "Inversiones Del Moral - D'Errico, C.A.",
-    color: '#3a78c2', logo: logoComoDataUrl('indelderca-logo.png'),
+    color: '#1a4a8c', logo: logoComoDataUrl('indelderca-logo.png'),
   },
   {
     nombre: 'Salud San Marcos', rif: 'J-504102849', razonSocial: 'Centro Médico San Marcos, C.A.',
@@ -70,14 +70,21 @@ runInTransaction(() => {
       // Empresa ya existente (instalación previa): completa RIF/razón social
       // solo si todavía están vacíos, sin pisar nada que el usuario ya haya
       // configurado a mano desde Configuración → Empresas.
-      const actual = db.prepare('SELECT rif, razon_social FROM empresas WHERE id = ?').get(empresaId) as
-        | { rif: string | null; razon_social: string | null }
+      const actual = db.prepare('SELECT rif, razon_social, color FROM empresas WHERE id = ?').get(empresaId) as
+        | { rif: string | null; razon_social: string | null; color: string | null }
         | undefined;
       if (actual && !actual.rif && emp.rif) {
         db.prepare('UPDATE empresas SET rif = ? WHERE id = ?').run(emp.rif, empresaId);
       }
       if (actual && !actual.razon_social && emp.razonSocial) {
         db.prepare('UPDATE empresas SET razon_social = ? WHERE id = ?').run(emp.razonSocial, empresaId);
+      }
+      // Corrección puntual: Indelderca se cargó originalmente con un azul claro
+      // en vez del azul marino de su marca. Solo se corrige si el color sigue
+      // siendo ese valor original, para no pisar un color que el usuario ya
+      // haya personalizado a mano desde Configuración → Empresas.
+      if (emp.nombre === 'Indelderca' && actual?.color === '#3a78c2') {
+        db.prepare('UPDATE empresas SET color = ? WHERE id = ?').run(emp.color, empresaId);
       }
     }
 

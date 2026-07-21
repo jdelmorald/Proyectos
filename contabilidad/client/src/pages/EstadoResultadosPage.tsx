@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Linea { id: number; codigo: string; nombre: string; saldo: number }
 
@@ -41,13 +42,13 @@ export default function EstadoResultadosPage() {
           {lineas.map((l) => (
             <div key={l.id} className="flex justify-between px-4 py-2 text-sm">
               <span>{l.codigo} — {l.nombre}</span>
-              <span>{negativo && l.saldo > 0 ? '-' : ''}{l.saldo.toFixed(2)}</span>
+              <span>{negativo && l.saldo > 0 ? '-' : ''}{formatearMonto(l.saldo)}</span>
             </div>
           ))}
           {lineas.length === 0 && <div className="px-4 py-3 text-sm text-slate-400">Sin movimientos</div>}
           <div className="flex justify-between px-4 py-2 text-sm font-bold bg-slate-50">
             <span>Total {titulo}</span>
-            <span>{negativo && total > 0 ? '-' : ''}{total.toFixed(2)}</span>
+            <span>{negativo && total > 0 ? '-' : ''}{formatearMonto(total)}</span>
           </div>
         </div>
       </div>
@@ -97,12 +98,12 @@ export default function EstadoResultadosPage() {
           <Seccion titulo="Costos" lineas={datos.costos} total={datos.totalCostos} negativo />
           <div className={`rounded-md border px-4 py-2 mb-4 flex justify-between text-sm font-bold ${datos.utilidadBruta >= 0 ? 'border-accent-300 bg-accent-50 text-accent-800' : 'border-red-300 bg-red-50 text-red-800'}`}>
             <span>Utilidad Bruta</span>
-            <span>{datos.utilidadBruta.toFixed(2)}</span>
+            <span>{formatearMonto(datos.utilidadBruta)}</span>
           </div>
           <Seccion titulo="Gastos" lineas={datos.gastos} total={datos.totalGastos} negativo />
           <div className={`rounded-md border px-4 py-3 flex justify-between text-base font-bold ${datos.utilidadNeta >= 0 ? 'border-accent-400 bg-accent-50 text-accent-800' : 'border-red-400 bg-red-50 text-red-800'}`}>
             <span>Utilidad Neta del Ejercicio</span>
-            <span>{datos.utilidadNeta.toFixed(2)}</span>
+            <span>{formatearMonto(datos.utilidadNeta)}</span>
           </div>
         </>
       )}

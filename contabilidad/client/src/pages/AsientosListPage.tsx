@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Asiento {
   id: number;
@@ -98,7 +99,7 @@ export default function AsientosListPage() {
                   <td className="px-4 py-2 font-medium text-slate-700">{a.numero}</td>
                   <td className="px-4 py-2">{a.fecha}</td>
                   <td className="px-4 py-2">{a.descripcion}</td>
-                  <td className="px-4 py-2 text-right">{monto.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right">{formatearMonto(monto)}</td>
                   <td className="px-4 py-2">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.estado === 'anulado' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
                       {a.estado}

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
+import { formatearMonto } from '../utils/formato';
 
 type Tab = 'iva' | 'islr-retenciones' | 'islr-estimado' | 'igtf' | 'municipal';
 
@@ -14,7 +15,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 function hoy() { return new Date().toISOString().slice(0, 10); }
 function inicioMes() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`; }
-function fmt(n: number) { return n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+const fmt = formatearMonto;
 
 export default function FiscalPage() {
   const { empresaId, empresa } = useEmpresa();

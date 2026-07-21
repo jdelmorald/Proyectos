@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Registro {
   id: number;
@@ -180,11 +181,11 @@ export default function LibroComprasPage() {
                 <td className="px-3 py-2">{r.fecha}</td>
                 <td className="px-3 py-2">{r.numero_factura}</td>
                 <td className="px-3 py-2">{r.proveedor_nombre} <span className="text-xs text-slate-400">({r.proveedor_rif})</span></td>
-                <td className="px-3 py-2 text-right">{r.base_imponible.toFixed(2)}</td>
-                <td className="px-3 py-2 text-right">{r.exento.toFixed(2)}</td>
-                <td className="px-3 py-2 text-right">{r.iva_monto.toFixed(2)}</td>
-                <td className="px-3 py-2 text-right">{r.iva_retenido.toFixed(2)}</td>
-                <td className="px-3 py-2 text-right font-medium">{r.total.toFixed(2)}</td>
+                <td className="px-3 py-2 text-right">{formatearMonto(r.base_imponible)}</td>
+                <td className="px-3 py-2 text-right">{formatearMonto(r.exento)}</td>
+                <td className="px-3 py-2 text-right">{formatearMonto(r.iva_monto)}</td>
+                <td className="px-3 py-2 text-right">{formatearMonto(r.iva_retenido)}</td>
+                <td className="px-3 py-2 text-right font-medium">{formatearMonto(r.total)}</td>
                 <td className="px-3 py-2 text-right"><button onClick={() => eliminar(r.id)} className="text-red-600 hover:underline text-xs">Eliminar</button></td>
               </tr>
             ))}
@@ -193,11 +194,11 @@ export default function LibroComprasPage() {
           <tfoot>
             <tr className="border-t-2 border-slate-800 font-bold">
               <td className="px-3 py-2" colSpan={3}>Totales</td>
-              <td className="px-3 py-2 text-right">{totales.base.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right">{totales.exento.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right">{totales.iva.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right">{totales.retenido.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right">{totales.total.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right">{formatearMonto(totales.base)}</td>
+              <td className="px-3 py-2 text-right">{formatearMonto(totales.exento)}</td>
+              <td className="px-3 py-2 text-right">{formatearMonto(totales.iva)}</td>
+              <td className="px-3 py-2 text-right">{formatearMonto(totales.retenido)}</td>
+              <td className="px-3 py-2 text-right">{formatearMonto(totales.total)}</td>
               <td></td>
             </tr>
           </tfoot>

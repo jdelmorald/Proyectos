@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Linea { id: number; codigo: string; nombre: string; saldo: number }
 
@@ -38,13 +39,13 @@ export default function BalanceGeneralPage() {
           {lineas.map((l) => (
             <div key={l.id} className="flex justify-between px-4 py-2 text-sm">
               <span>{l.codigo} — {l.nombre}</span>
-              <span>{l.saldo.toFixed(2)}</span>
+              <span>{formatearMonto(l.saldo)}</span>
             </div>
           ))}
           {lineas.length === 0 && <div className="px-4 py-3 text-sm text-slate-400">Sin movimientos</div>}
           <div className="flex justify-between px-4 py-2 text-sm font-bold bg-slate-50">
             <span>Total {titulo}</span>
-            <span>{total.toFixed(2)}</span>
+            <span>{formatearMonto(total)}</span>
           </div>
         </div>
       </div>
@@ -122,23 +123,23 @@ export default function BalanceGeneralPage() {
               {datos.patrimonio.map((l) => (
                 <div key={l.id} className="flex justify-between px-4 py-2 text-sm">
                   <span>{l.codigo} — {l.nombre}</span>
-                  <span>{l.saldo.toFixed(2)}</span>
+                  <span>{formatearMonto(l.saldo)}</span>
                 </div>
               ))}
               <div className="flex justify-between px-4 py-2 text-sm">
                 <span>Utilidad del ejercicio</span>
-                <span>{datos.utilidadEjercicio.toFixed(2)}</span>
+                <span>{formatearMonto(datos.utilidadEjercicio)}</span>
               </div>
               <div className="flex justify-between px-4 py-2 text-sm font-bold bg-slate-50">
                 <span>Total Patrimonio</span>
-                <span>{datos.totalPatrimonio.toFixed(2)}</span>
+                <span>{formatearMonto(datos.totalPatrimonio)}</span>
               </div>
             </div>
           </div>
 
           <div className={`rounded-md border px-4 py-3 flex justify-between text-sm font-bold ${datos.cuadra ? 'border-accent-300 bg-accent-50 text-accent-800' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
-            <span>Total Activo: {datos.totalActivo.toFixed(2)}</span>
-            <span>Total Pasivo + Patrimonio: {datos.totalPasivoMasPatrimonio.toFixed(2)}</span>
+            <span>Total Activo: {formatearMonto(datos.totalActivo)}</span>
+            <span>Total Pasivo + Patrimonio: {formatearMonto(datos.totalPasivoMasPatrimonio)}</span>
             <span>{datos.cuadra ? '✓ Balance cuadrado' : 'No cuadra'}</span>
           </div>
         </>

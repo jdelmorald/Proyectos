@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface CuentaPendiente {
   id: number;
@@ -154,8 +155,8 @@ export default function CuentasPendientesPage() {
                 <td className={`px-4 py-2 ${estaVencida(i.fechaVencimiento, i.estado) ? 'text-red-600 font-semibold' : ''}`}>
                   {i.fechaVencimiento || '—'}{estaVencida(i.fechaVencimiento, i.estado) ? ' (vencida)' : ''}
                 </td>
-                <td className="px-4 py-2 text-right">{i.montoOriginal.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right font-semibold">{i.saldoPendiente.toFixed(2)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(i.montoOriginal)}</td>
+                <td className="px-4 py-2 text-right font-semibold">{formatearMonto(i.saldoPendiente)}</td>
                 <td className="px-4 py-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_TONE[i.estado]}`}>{ESTADO_LABEL[i.estado]}</span>
                 </td>
@@ -179,7 +180,7 @@ export default function CuentasPendientesPage() {
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold text-brand-900 mb-1">{tab === 'cxc' ? 'Registrar cobro' : 'Registrar pago'}</h2>
-            <p className="text-sm text-slate-500 mb-4">{abonando.terceroNombre} · Saldo pendiente: {moneda} {abonando.saldoPendiente.toFixed(2)}</p>
+            <p className="text-sm text-slate-500 mb-4">{abonando.terceroNombre} · Saldo pendiente: {moneda} {formatearMonto(abonando.saldoPendiente)}</p>
             <form onSubmit={onSubmitAbono} className="space-y-3">
               <div>
                 <label className="block text-xs text-slate-500 mb-1">Fecha</label>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface CuentaBalance {
   id: number;
@@ -75,10 +76,10 @@ export default function BalanceComprobacionPage() {
                 <tr key={c.id} className="border-t border-slate-100">
                   <td className="px-4 py-2 font-mono text-xs">{c.codigo}</td>
                   <td className="px-4 py-2">{c.nombre}</td>
-                  <td className="px-4 py-2 text-right">{c.totalDebe.toFixed(2)}</td>
-                  <td className="px-4 py-2 text-right">{c.totalHaber.toFixed(2)}</td>
-                  <td className="px-4 py-2 text-right">{c.saldoDeudor > 0 ? c.saldoDeudor.toFixed(2) : ''}</td>
-                  <td className="px-4 py-2 text-right">{c.saldoAcreedor > 0 ? c.saldoAcreedor.toFixed(2) : ''}</td>
+                  <td className="px-4 py-2 text-right">{formatearMonto(c.totalDebe)}</td>
+                  <td className="px-4 py-2 text-right">{formatearMonto(c.totalHaber)}</td>
+                  <td className="px-4 py-2 text-right">{c.saldoDeudor > 0 ? formatearMonto(c.saldoDeudor) : ''}</td>
+                  <td className="px-4 py-2 text-right">{c.saldoAcreedor > 0 ? formatearMonto(c.saldoAcreedor) : ''}</td>
                 </tr>
               ))}
               {datos.cuentas.length === 0 && (
@@ -88,10 +89,10 @@ export default function BalanceComprobacionPage() {
             <tfoot>
               <tr className="border-t-2 border-slate-800 font-bold">
                 <td className="px-4 py-2" colSpan={2}>Totales</td>
-                <td className="px-4 py-2 text-right">{datos.totales.totalDebe.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">{datos.totales.totalHaber.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">{datos.totales.saldoDeudor.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">{datos.totales.saldoAcreedor.toFixed(2)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(datos.totales.totalDebe)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(datos.totales.totalHaber)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(datos.totales.saldoDeudor)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(datos.totales.saldoAcreedor)}</td>
               </tr>
             </tfoot>
           </table>

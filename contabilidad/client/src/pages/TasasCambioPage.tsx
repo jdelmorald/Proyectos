@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client';
+import { formatearMonto } from '../utils/formato';
 
 interface Tasa {
   id: number;
@@ -53,7 +54,7 @@ export default function TasasCambioPage() {
         {ultimaPorMoneda.map((t, i) => (
           <div key={i} className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
             <div className="text-xs text-slate-400">{(['USD', 'COP', 'EUR'] as const)[i]}</div>
-            <div className="text-xl font-bold text-brand-900">{t ? t.tasa.toLocaleString('es-VE', { minimumFractionDigits: 2 }) : '—'}</div>
+            <div className="text-xl font-bold text-brand-900">{t ? formatearMonto(t.tasa, 4) : '—'}</div>
             <div className="text-[11px] text-slate-400">{t ? `Al ${t.fecha}` : 'Sin tasa registrada'}</div>
           </div>
         ))}
@@ -95,7 +96,7 @@ export default function TasasCambioPage() {
               <tr key={t.id} className="border-t border-slate-100">
                 <td className="px-4 py-2">{t.fecha}</td>
                 <td className="px-4 py-2">{t.moneda}</td>
-                <td className="px-4 py-2 text-right">{t.tasa.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(t.tasa, 4)}</td>
                 <td className="px-4 py-2 text-right">
                   <button onClick={() => eliminar(t.id)} className="text-red-600 hover:underline text-xs">Eliminar</button>
                 </td>

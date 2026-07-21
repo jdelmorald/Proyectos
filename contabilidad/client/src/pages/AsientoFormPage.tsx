@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import BotonesExportar from '../components/BotonesExportar';
+import { formatearMonto } from '../utils/formato';
 
 interface Cuenta {
   id: number;
@@ -238,20 +239,20 @@ export default function AsientoFormPage() {
                   <td className="px-4 py-2 text-xs text-slate-500">
                     {l.terceroNombre || ''}{l.terceroNombre && l.centroCostoNombre ? ' · ' : ''}{l.centroCostoNombre || ''}
                     {l.moneda !== 'VES' && (
-                      <div className="text-slate-400">{l.moneda} {l.montoOriginal?.toFixed(2)} @ {l.tasaCambio?.toFixed(4)}</div>
+                      <div className="text-slate-400">{l.moneda} {formatearMonto(l.montoOriginal)} @ {formatearMonto(l.tasaCambio, 4)}</div>
                     )}
                   </td>
                   <td className="px-4 py-2 text-slate-500">{l.descripcion}</td>
-                  <td className="px-4 py-2 text-right">{l.debe > 0 ? l.debe.toFixed(2) : ''}</td>
-                  <td className="px-4 py-2 text-right">{l.haber > 0 ? l.haber.toFixed(2) : ''}</td>
+                  <td className="px-4 py-2 text-right">{l.debe > 0 ? formatearMonto(l.debe) : ''}</td>
+                  <td className="px-4 py-2 text-right">{l.haber > 0 ? formatearMonto(l.haber) : ''}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-800 font-bold">
                 <td className="px-4 py-2" colSpan={3}>Totales</td>
-                <td className="px-4 py-2 text-right">{totDebe.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">{totHaber.toFixed(2)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(totDebe)}</td>
+                <td className="px-4 py-2 text-right">{formatearMonto(totHaber)}</td>
               </tr>
             </tfoot>
           </table>
@@ -387,8 +388,8 @@ export default function AsientoFormPage() {
         </div>
 
         <div className={`rounded-md border px-4 py-3 flex justify-between text-sm font-medium ${cuadra ? 'border-accent-300 bg-accent-50 text-accent-800' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
-          <span>Debe: {totalDebe.toFixed(2)}</span>
-          <span>Haber: {totalHaber.toFixed(2)}</span>
+          <span>Debe: {formatearMonto(totalDebe)}</span>
+          <span>Haber: {formatearMonto(totalHaber)}</span>
           <span>{cuadra ? '✓ Cuadrado' : 'No cuadra'}</span>
         </div>
 
