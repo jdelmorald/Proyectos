@@ -131,25 +131,33 @@ function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [num
     }
   }
   const textX = empresa?.logo_data_url ? MARGEN + 20 : MARGEN;
-  // El bloque de empresa (izquierda) y el título centrado comparten la misma
-  // fila: si el nombre o la razón social son largos (p.ej. una razón social
-  // completa), el texto puede extenderse lo suficiente para chocar con el
-  // título/subtítulo centrado. Se mide primero cuánto ocupa realmente el
-  // bloque central (título/subtítulo/moneda, el más ancho de los tres) para
-  // saber dónde empieza de verdad, y se limita el ancho de la izquierda a lo
-  // que cabe antes de ese borde, envolviendo a una segunda línea si hace falta.
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  // El bloque de empresa (izquierda), el título centrado y los metadatos
+  // (derecha) comparten la misma fila. Un título largo (p.ej. "Balance
+  // General (Estado de Situación Financiera)") puede ser más ancho que el
+  // espacio disponible en el centro y chocar contra la empresa o la fecha;
+  // una razón social larga puede hacer lo mismo desde el otro lado. Primero
+  // se encoge el título/subtítulo/moneda (nunca por debajo de un mínimo
+  // legible) para que quepan en una franja central fija, y luego se limita
+  // el ancho de la izquierda a lo que sobra antes de esa franja, envolviendo
+  // a una segunda línea si hace falta.
+  const anchoMaxCentro = pageWidth * 0.38;
+  function ajustarTamano(texto: string, inicial: number, minimo: number, negrita: boolean): number {
+    doc.setFont('helvetica', negrita ? 'bold' : 'normal');
+    let tam = inicial;
+    doc.setFontSize(tam);
+    while (doc.getTextWidth(texto) > anchoMaxCentro && tam > minimo) {
+      tam -= 0.5;
+      doc.setFontSize(tam);
+    }
+    return tam;
+  }
+  const tamanoTitulo = ajustarTamano(titulo.toUpperCase(), 11, 7.5, true);
   let anchoCentro = doc.getTextWidth(titulo.toUpperCase());
-  if (subtitulo) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    anchoCentro = Math.max(anchoCentro, doc.getTextWidth(subtitulo));
-  }
-  if (empresa?.moneda) {
-    doc.setFontSize(7.5);
-    anchoCentro = Math.max(anchoCentro, doc.getTextWidth(`(Cifras expresadas en ${empresa.moneda})`));
-  }
+  const tamanoSubtitulo = subtitulo ? ajustarTamano(subtitulo, 8.5, 6.5, false) : 8.5;
+  if (subtitulo) anchoCentro = Math.max(anchoCentro, doc.getTextWidth(subtitulo));
+  const textoMoneda = empresa?.moneda ? `(Cifras expresadas en ${empresa.moneda})` : '';
+  const tamanoMoneda = textoMoneda ? ajustarTamano(textoMoneda, 7.5, 6, false) : 7.5;
+  if (textoMoneda) anchoCentro = Math.max(anchoCentro, doc.getTextWidth(textoMoneda));
   const bordeCentroIzquierdo = pageWidth / 2 - anchoCentro / 2 - 6;
   const anchoMaxIzquierdo = Math.max(30, bordeCentroIzquierdo - textX);
   let yIzq = 14;
@@ -174,21 +182,22 @@ function dibujarEncabezado(doc: jsPDF, opts: ExportOptions, colorPrincipal: [num
   }
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(tamanoTitulo);
   doc.setTextColor(30, 41, 59);
   doc.text(titulo.toUpperCase(), pageWidth / 2, 13, { align: 'center' });
   let yTitulo = 18;
   if (subtitulo) {
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    doc.setFontSize(tamanoSubtitulo);
     doc.setTextColor(90);
     doc.text(subtitulo, pageWidth / 2, yTitulo, { align: 'center' });
     yTitulo += 4.5;
   }
-  if (empresa?.moneda) {
-    doc.setFontSize(7.5);
+  if (textoMoneda) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(tamanoMoneda);
     doc.setTextColor(140);
-    doc.text(`(Cifras expresadas en ${empresa.moneda})`, pageWidth / 2, yTitulo, { align: 'center' });
+    doc.text(textoMoneda, pageWidth / 2, yTitulo, { align: 'center' });
     yTitulo += 4.5;
   }
 
