@@ -32,7 +32,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <AnimatedBackground />
 
-      <div className="w-full max-w-md rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-2xl shadow-2xl shadow-black/40 p-8 sm:p-10">
+      <div className="animate-entrada w-full max-w-md rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-2xl shadow-2xl shadow-black/40 p-8 sm:p-10">
         <BrandLogo size="md" light />
 
         <h1 className="font-display text-2xl font-semibold text-white mt-8 mb-6">Inicia Sesión</h1>

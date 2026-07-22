@@ -108,7 +108,7 @@ export default function SeleccionarEmpresaPage() {
       <AnimatedBackground />
       <Marquee />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
+      <div className="animate-entrada flex-1 flex flex-col items-center justify-center px-4 py-12">
         <div className="text-center mb-2">
           <div className="text-sm font-semibold tracking-[0.25em] text-gold-400">SISTEMA CONTABLE · GRUPO DELDER</div>
         </div>

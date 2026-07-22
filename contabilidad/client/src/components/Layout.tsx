@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   NotebookPen,
@@ -100,20 +100,42 @@ function linkClasses(isActive: boolean) {
 export default function Layout() {
   const { user } = useAuth();
   const { empresa } = useEmpresa();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <aside className="no-print w-72 shrink-0 bg-brand-900 flex flex-col">
+      <aside className="no-print w-72 shrink-0 bg-brand-900 flex flex-col animate-entrada">
         <div className="px-5 py-5 border-b border-white/10">
           <BrandLogo size="sm" light />
         </div>
 
-        <div className="mx-4 mt-4 mb-1 px-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-gold-400/80">Empresa</div>
-            <div className="text-sm font-bold text-white">{empresa?.nombre}</div>
+        <div
+          className="relative mx-4 mt-4 mb-1 px-3 py-2.5 rounded-xl border bg-white/[0.07] backdrop-blur-xl overflow-hidden flex items-center gap-2.5"
+          style={{
+            borderColor: `${empresa?.color || '#d4af5a'}80`,
+            boxShadow: `0 0 0 1px ${empresa?.color || '#d4af5a'}40, 0 8px 20px -10px ${empresa?.color || '#d4af5a'}55, 0 0 24px 0px ${empresa?.color || '#d4af5a'}3a`,
+          }}
+        >
+          {/* Resplandor de marca, mismo lenguaje que las tarjetas de selección de empresa */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-4 rounded-2xl blur-xl"
+            style={{ background: empresa?.color || '#d4af5a', opacity: 0.22 }}
+          />
+          <div className="relative z-10 h-9 w-9 shrink-0 rounded-lg bg-white flex items-center justify-center ring-1 ring-black/5 overflow-hidden">
+            {empresa?.logo_data_url ? (
+              <img src={empresa.logo_data_url} alt={empresa.nombre} className="h-7 w-7 object-contain" />
+            ) : (
+              <span className="text-xs font-bold" style={{ color: empresa?.color || '#0f172a' }}>
+                {(empresa?.nombre || '?').slice(0, 2).toUpperCase()}
+              </span>
+            )}
           </div>
-          <Link to="/seleccionar-empresa" className="text-xs text-gold-300 hover:text-gold-200 hover:underline whitespace-nowrap">
+          <div className="relative z-10 min-w-0 flex-1">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-gold-400/80">Empresa</div>
+            <div className="text-sm font-bold text-white truncate">{empresa?.nombre}</div>
+          </div>
+          <Link to="/seleccionar-empresa" className="relative z-10 shrink-0 text-xs text-gold-300 hover:text-gold-200 hover:underline whitespace-nowrap">
             Cambiar
           </Link>
         </div>
@@ -225,7 +247,9 @@ export default function Layout() {
       <div className="flex-1 min-w-0 flex flex-col">
         <TopBar />
         <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
-          <Outlet />
+          <div key={location.pathname} className="animate-entrada">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
