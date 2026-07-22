@@ -105,7 +105,7 @@ export default function SeleccionarEmpresaPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <AnimatedBackground />
+      <AnimatedBackground foco="parejo" />
       <Marquee />
 
       <div className="animate-entrada flex-1 flex flex-col items-center justify-center px-4 py-12">

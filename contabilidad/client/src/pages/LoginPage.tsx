@@ -30,9 +30,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <AnimatedBackground />
+      <AnimatedBackground foco="derecha" />
 
-      <div className="animate-entrada w-full max-w-md rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-2xl shadow-2xl shadow-black/40 p-8 sm:p-10">
+      <div className="animate-entrada w-full max-w-md rounded-3xl border border-white/25 bg-white/[0.17] backdrop-blur-[38px] backdrop-saturate-150 shadow-2xl shadow-black/40 p-8 sm:p-10">
+        <div className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-gold-400 mb-3.5">
+          Sistema de Contabilidad — Administración y Finanzas
+        </div>
         <BrandLogo size="md" light />
 
         <h1 className="font-display text-2xl font-semibold text-white mt-8 mb-6">Inicia Sesión</h1>
@@ -46,7 +49,7 @@ export default function LoginPage() {
               placeholder="Correo Electrónico"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition"
+              className="w-full rounded-xl border border-white/25 bg-white/[0.10] px-4 py-2.5 text-sm text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition"
             />
           </div>
           <div>
@@ -58,7 +61,7 @@ export default function LoginPage() {
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition pr-10"
+                className="w-full rounded-xl border border-white/25 bg-white/[0.10] px-4 py-2.5 text-sm text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition pr-10"
               />
               <button
                 type="button"

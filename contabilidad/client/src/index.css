@@ -35,68 +35,72 @@
   .animate-entrada { animation: none; }
 }
 
-/* Fondo animado (Login / Bienvenida): retícula tipo terminal financiero que
-   deriva lentamente, dos resplandores de marca, y una línea de tendencia
-   bursátil de fondo. Todo CSS puro, sin canvas/video. */
-.fondo-reticula {
-  background-image:
-    linear-gradient(rgba(212, 175, 90, 0.35) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 90, 0.35) 1px, transparent 1px);
-  background-size: 56px 56px;
-  animation: derivaReticula 40s linear infinite;
+/* Fondo animado (Login / Bienvenida): un "muro" denso de cifras bursátiles
+   generadas en vivo (ver AnimatedBackground.tsx) que se desplazan sin fin,
+   con un desenfoque de profundidad encima — nítido en una zona amplia
+   ('derecha', Login) o parejo en toda la pantalla ('parejo', Bienvenida).
+   Todo CSS puro, sin canvas/video. */
+.muro-datos { pointer-events: none; }
+.muro-columna { position: relative; flex: 1 1 0; overflow: hidden; height: 128vh; }
+.muro-pista {
+  display: flex;
+  flex-direction: column;
+  animation-name: muroDesplazar;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
-@keyframes derivaReticula {
-  from { background-position: 0 0; }
-  to { background-position: 56px 112px; }
+@keyframes muroDesplazar {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+.muro-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.5vw;
+  padding: 0.8vh 0.45vw;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid rgba(214, 226, 245, 0.05);
+}
+.muro-num {
+  font-family: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(0.8rem, 1.35vw, 1.35rem);
+  font-weight: 600;
+  color: rgba(214, 226, 245, 0.72);
+  letter-spacing: 0.02em;
+}
+.muro-pct { font-size: clamp(0.6rem, 0.88vw, 0.95rem); font-weight: 600; letter-spacing: 0.01em; }
+.muro-up { color: #34d97e; text-shadow: 0 0 9px rgba(52, 217, 126, 0.55); }
+.muro-down { color: #f4485c; text-shadow: 0 0 9px rgba(244, 72, 92, 0.55); }
+.muro-flecha { font-size: clamp(0.55rem, 0.82vw, 0.85rem); }
+
+/* Login: zona nítida amplia, desplazada a la derecha (el panel de vidrio va a la izquierda) */
+.muro-velo-enfoque {
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  mask-image: radial-gradient(ellipse 56% 66% at 66% 46%, transparent 0%, transparent 40%, black 82%);
+  -webkit-mask-image: radial-gradient(ellipse 56% 66% at 66% 46%, transparent 0%, transparent 40%, black 82%);
+}
+.muro-velo-fuerte {
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  mask-image: radial-gradient(ellipse 40% 48% at 66% 46%, transparent 0%, transparent 25%, black 65%);
+  -webkit-mask-image: radial-gradient(ellipse 40% 48% at 66% 46%, transparent 0%, transparent 25%, black 65%);
 }
 
-.fondo-orbe-oro {
-  top: -8rem;
-  right: -6rem;
-  background: radial-gradient(circle, rgba(212, 175, 90, 0.35) 0%, rgba(212, 175, 90, 0) 70%);
-  animation: derivaOrbe1 26s ease-in-out infinite;
-}
-.fondo-orbe-esmeralda {
-  bottom: -6rem;
-  left: -8rem;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0) 70%);
-  animation: derivaOrbe2 32s ease-in-out infinite;
-}
-@keyframes derivaOrbe1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-3rem, 2.5rem); }
-}
-@keyframes derivaOrbe2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(3rem, -2rem); }
-}
-
-.fondo-linea-tendencia {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='120' viewBox='0 0 400 120'%3E%3Cpolyline points='0,90 40,70 80,80 120,50 160,60 200,25 240,45 280,15 320,35 360,10 400,30' fill='none' stroke='%23d4af5a' stroke-width='1.4'/%3E%3C/svg%3E");
-  background-repeat: repeat-x;
-  background-size: 400px 120px;
-  background-position: bottom;
-  animation: derivaLinea 60s linear infinite;
-}
-@keyframes derivaLinea {
-  from { background-position-x: 0; }
-  to { background-position-x: -400px; }
-}
-
-/* Contorno de Venezuela: vaivén horizontal lento, de derecha a izquierda y
-   de vuelta — nunca gira, así siempre se reconoce como un mapa. */
-.fondo-mapa-ve {
-  animation: derivaMapa 70s ease-in-out infinite;
-}
-@keyframes derivaMapa {
-  0%, 100% { transform: translateX(2%); }
-  50% { transform: translateX(-5%); }
+/* Bienvenida: desenfoque parejo en toda la pantalla, sin punto de foco —
+   así ninguna zona compite visualmente con el texto ni con una tarjeta más
+   que con las otras. */
+.muro-velo-parejo {
+  pointer-events: none;
+  backdrop-filter: blur(6.5px);
+  -webkit-backdrop-filter: blur(6.5px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fondo-reticula, .fondo-orbe-oro, .fondo-orbe-esmeralda, .fondo-linea-tendencia, .fondo-mapa-ve {
-    animation: none !important;
-  }
+  .muro-pista { animation: none !important; }
 }
 
 /* Marquesina de índices (pantalla de bienvenida): cinta que se desplaza sin
