@@ -96,7 +96,7 @@ export default function LibroVentasPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-2xl font-bold text-slate-800">Libro de Ventas</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Libro de Ventas</h1>
         <button onClick={() => setMostrarForm((v) => !v)} className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md text-sm font-medium">
           {mostrarForm ? 'Cancelar' : '+ Registrar Venta'}
         </button>

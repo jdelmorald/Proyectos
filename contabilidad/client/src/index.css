@@ -2,6 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tipografía de despliegue (títulos, cifras destacadas): un serif con
+   carácter propio, autoalojado para que funcione sin conexión en la
+   instalación local — nunca depende de un CDN externo. */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Fraunces-600.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/Fraunces-900.ttf') format('truetype');
+}
+
+/* Fondo animado (Login / Bienvenida): retícula tipo terminal financiero que
+   deriva lentamente, dos resplandores de marca, y una línea de tendencia
+   bursátil de fondo. Todo CSS puro, sin canvas/video. */
+.fondo-reticula {
+  background-image:
+    linear-gradient(rgba(212, 175, 90, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 90, 0.35) 1px, transparent 1px);
+  background-size: 56px 56px;
+  animation: derivaReticula 40s linear infinite;
+}
+@keyframes derivaReticula {
+  from { background-position: 0 0; }
+  to { background-position: 56px 112px; }
+}
+
+.fondo-orbe-oro {
+  top: -8rem;
+  right: -6rem;
+  background: radial-gradient(circle, rgba(212, 175, 90, 0.35) 0%, rgba(212, 175, 90, 0) 70%);
+  animation: derivaOrbe1 26s ease-in-out infinite;
+}
+.fondo-orbe-esmeralda {
+  bottom: -6rem;
+  left: -8rem;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0) 70%);
+  animation: derivaOrbe2 32s ease-in-out infinite;
+}
+@keyframes derivaOrbe1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-3rem, 2.5rem); }
+}
+@keyframes derivaOrbe2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(3rem, -2rem); }
+}
+
+.fondo-linea-tendencia {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='120' viewBox='0 0 400 120'%3E%3Cpolyline points='0,90 40,70 80,80 120,50 160,60 200,25 240,45 280,15 320,35 360,10 400,30' fill='none' stroke='%23d4af5a' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 400px 120px;
+  background-position: bottom;
+  animation: derivaLinea 60s linear infinite;
+}
+@keyframes derivaLinea {
+  from { background-position-x: 0; }
+  to { background-position-x: -400px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fondo-reticula, .fondo-orbe-oro, .fondo-orbe-esmeralda, .fondo-linea-tendencia {
+    animation: none !important;
+  }
+}
+
+/* Marquesina de índices (pantalla de bienvenida): cinta que se desplaza sin
+   fin — el contenido se duplica una vez en el JSX para que el loop no salte. */
+.marquesina-pista {
+  animation: desplazarMarquesina 32s linear infinite;
+}
+.marquesina-pausada:hover .marquesina-pista {
+  animation-play-state: paused;
+}
+@keyframes desplazarMarquesina {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquesina-pista {
+    animation: none !important;
+  }
+}
+
 @media print {
   body * {
     visibility: hidden;

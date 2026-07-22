@@ -84,7 +84,7 @@ export default function PlanCuentasPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Plan de Cuentas</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Plan de Cuentas</h1>
         <div className="flex items-center gap-3">
           <BotonesExportar
             empresa={empresa}

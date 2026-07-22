@@ -30,7 +30,7 @@ export default function BalanceComprobacionPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">Balance de Comprobación</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-1">Balance de Comprobación</h1>
       <p className="text-sm text-slate-500 mb-4">{empresa?.nombre}</p>
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">

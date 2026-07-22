@@ -3,6 +3,11 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        // Serif de despliegue: títulos de página, cifras destacadas del Dashboard,
+        // nombre de marca — usado con moderación, nunca para texto de cuerpo/tablas.
+        display: ['Fraunces', 'Georgia', 'serif'],
+      },
       colors: {
         // Azul marino profundo — identidad neutral de la Dirección Financiera (Sumivensa, Indelderca, Salud San Marcos).
         brand: {

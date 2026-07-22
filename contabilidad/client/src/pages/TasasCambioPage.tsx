@@ -46,7 +46,7 @@ export default function TasasCambioPage() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Tasas de Cambio</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Tasas de Cambio</h1>
         <p className="text-sm text-slate-500 mt-0.5">Tasas diarias para registrar asientos en moneda extranjera (USD, COP, EUR frente al Bolívar).</p>
       </div>
 

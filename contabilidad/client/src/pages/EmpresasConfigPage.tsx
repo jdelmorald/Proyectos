@@ -146,7 +146,7 @@ export default function EmpresasConfigPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-4">Empresas</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-4">Empresas</h1>
 
       {!soloLectura && (
         <form onSubmit={onSubmit} className="bg-white rounded-lg border border-slate-200 p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">

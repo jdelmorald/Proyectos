@@ -56,7 +56,7 @@ export default function PerfilPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-4">Mi Perfil</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-4">Mi Perfil</h1>
 
       <form onSubmit={onSubmit} className="bg-white rounded-lg border border-slate-200 p-6 space-y-5">
         <div className="flex items-center gap-5">

@@ -116,7 +116,7 @@ export default function AsientosListPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Libro Diario</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Libro Diario</h1>
         <Link to="/asientos/nuevo" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md text-sm font-medium">
           + Registrar Asiento
         </Link>

@@ -35,7 +35,9 @@ function TopBar() {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   return (
-    <header className="no-print h-14 shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+    <header className="no-print shrink-0 bg-white flex flex-col">
+      <div className="h-[3px] bg-gradient-to-r from-brand-900 via-gold-500 to-accent-600" />
+      <div className="h-14 border-b border-slate-200 flex items-center justify-between px-6">
       <button
         onClick={() => navigate('/seleccionar-empresa')}
         className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand-900 hover:bg-slate-50 rounded-md px-2.5 py-1.5 -ml-2.5"
@@ -82,13 +84,16 @@ function TopBar() {
           </>
         )}
       </div>
+      </div>
     </header>
   );
 }
 
 function linkClasses(isActive: boolean) {
-  return `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
-    isActive ? 'bg-accent-50 text-accent-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'
+  return `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition border-l-2 ${
+    isActive
+      ? 'bg-white/[0.06] text-gold-300 font-semibold border-gold-500'
+      : 'text-slate-300 hover:bg-white/[0.04] hover:text-white border-transparent'
   }`;
 }
 
@@ -98,17 +103,17 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <aside className="no-print w-72 shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="px-5 py-5 border-b border-slate-100">
-          <BrandLogo size="sm" />
+      <aside className="no-print w-72 shrink-0 bg-brand-900 flex flex-col">
+        <div className="px-5 py-5 border-b border-white/10">
+          <BrandLogo size="sm" light />
         </div>
 
-        <div className="mx-4 mt-4 mb-1 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+        <div className="mx-4 mt-4 mb-1 px-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Empresa</div>
-            <div className="text-sm font-bold text-brand-900">{empresa?.nombre}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-gold-400/80">Empresa</div>
+            <div className="text-sm font-bold text-white">{empresa?.nombre}</div>
           </div>
-          <Link to="/seleccionar-empresa" className="text-xs text-accent-700 hover:underline whitespace-nowrap">
+          <Link to="/seleccionar-empresa" className="text-xs text-gold-300 hover:text-gold-200 hover:underline whitespace-nowrap">
             Cambiar
           </Link>
         </div>
@@ -119,7 +124,7 @@ export default function Layout() {
           </NavLink>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Contabilidad</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Contabilidad</div>
             <div className="space-y-0.5">
               <NavLink to="/asientos" className={({ isActive }) => linkClasses(isActive)}>
                 <NotebookPen size={17} strokeWidth={2} /> Libro Diario
@@ -131,7 +136,7 @@ export default function Layout() {
           </div>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Reportes</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Reportes</div>
             <div className="space-y-0.5">
               <NavLink to="/reportes/libro-mayor" className={({ isActive }) => linkClasses(isActive)}>
                 <BookMarked size={17} strokeWidth={2} /> Libro Mayor
@@ -155,7 +160,7 @@ export default function Layout() {
           </div>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Libros Fiscales</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Libros Fiscales</div>
             <div className="space-y-0.5">
               <NavLink to="/libro-compras" className={({ isActive }) => linkClasses(isActive)}>
                 <ShoppingCart size={17} strokeWidth={2} /> Libro de Compras
@@ -167,7 +172,7 @@ export default function Layout() {
           </div>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Cartera</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Cartera</div>
             <div className="space-y-0.5">
               <NavLink to="/cuentas-pendientes" className={({ isActive }) => linkClasses(isActive)}>
                 <HandCoins size={17} strokeWidth={2} /> CxC / CxP
@@ -179,7 +184,7 @@ export default function Layout() {
           </div>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Fiscal</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Fiscal</div>
             <div className="space-y-0.5">
               <NavLink to="/fiscal" className={({ isActive }) => linkClasses(isActive)}>
                 <LandmarkIcon size={17} strokeWidth={2} /> Módulo Fiscal
@@ -188,7 +193,7 @@ export default function Layout() {
           </div>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Planificación</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Planificación</div>
             <div className="space-y-0.5">
               <NavLink to="/flujo-proyectado" className={({ isActive }) => linkClasses(isActive)}>
                 <CalendarClock size={17} strokeWidth={2} /> Flujo de Caja Proyectado
@@ -197,7 +202,7 @@ export default function Layout() {
           </div>
 
           <div>
-            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Configuración</div>
+            <div className="px-3 text-[10px] font-semibold uppercase tracking-wide text-white/35 mb-1">Configuración</div>
             <div className="space-y-0.5">
               <NavLink to="/centros-costo" className={({ isActive }) => linkClasses(isActive)}>
                 <Layers size={17} strokeWidth={2} /> Centros de Costo

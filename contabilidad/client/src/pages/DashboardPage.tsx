@@ -87,7 +87,7 @@ function StatCard({
         <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tones}`}>{icon}</div>
       </div>
       <div className="text-xs font-medium text-slate-400">{label}</div>
-      <div className="text-2xl font-extrabold text-brand-900 mt-0.5">
+      <div className="text-2xl font-display font-semibold text-brand-900 mt-0.5">
         {moneda} {fmt(value)}
       </div>
     </div>
@@ -113,7 +113,7 @@ export default function DashboardPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand-900">Dashboard</h1>
+        <h1 className="text-2xl font-display font-semibold text-brand-900">Dashboard</h1>
         <p className="text-slate-500 text-sm mt-0.5">{empresa ? `Panel financiero de ${empresa.nombre}, año en curso.` : ''}</p>
       </div>
 

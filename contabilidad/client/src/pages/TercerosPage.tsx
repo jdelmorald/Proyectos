@@ -56,7 +56,7 @@ export default function TercerosPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Clientes y Proveedores</h1>
+          <h1 className="text-2xl font-display font-semibold text-slate-800">Clientes y Proveedores</h1>
           <p className="text-sm text-slate-500 mt-0.5">Terceros para el subledger de Cuentas por Cobrar y por Pagar.</p>
         </div>
         <button

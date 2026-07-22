@@ -28,7 +28,7 @@ export default function FlujoEfectivoPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">Flujo de Efectivo</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-1">Flujo de Efectivo</h1>
       <p className="text-sm text-slate-500 mb-1">{empresa?.nombre} · del {desde} al {hasta}</p>
       <p className="text-xs text-slate-400 mb-4">
         Calculado a partir de los movimientos en cuentas de Caja/Banco, clasificados según la actividad de la

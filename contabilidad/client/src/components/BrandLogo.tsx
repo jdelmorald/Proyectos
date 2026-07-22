@@ -1,4 +1,4 @@
-export default function BrandLogo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+export default function BrandLogo({ size = 'md', light = false }: { size?: 'sm' | 'md' | 'lg'; light?: boolean }) {
   const dims = { sm: { icon: 28, text: 'text-sm', gap: 'gap-2' }, md: { icon: 36, text: 'text-lg', gap: 'gap-2.5' }, lg: { icon: 44, text: 'text-xl', gap: 'gap-3' } }[size];
 
   return (
@@ -21,9 +21,9 @@ export default function BrandLogo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }
         <rect x="2" y="20" width="7" height="18" rx="2" fill="url(#barGrad1)" />
         <rect x="13" y="12" width="7" height="26" rx="2" fill="url(#barGrad2)" />
         <rect x="24" y="4" width="7" height="34" rx="2" fill="url(#barGrad3)" />
-        <path d="M2 17 L13 9 L24 1" stroke="#101a2b" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" opacity="0.35" />
+        <path d="M2 17 L13 9 L24 1" stroke={light ? '#e8d5a3' : '#101a2b'} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" opacity={light ? '0.55' : '0.35'} />
       </svg>
-      <div className={`font-extrabold leading-tight tracking-tight text-brand-900 ${dims.text}`}>
+      <div className={`font-display font-semibold leading-tight tracking-tight ${light ? 'text-white' : 'text-brand-900'} ${dims.text}`}>
         <div>GRUPO</div>
         <div className="-mt-1">DELDER</div>
       </div>

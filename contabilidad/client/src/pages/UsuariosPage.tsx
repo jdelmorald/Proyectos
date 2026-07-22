@@ -119,7 +119,7 @@ export default function UsuariosPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-4">Usuarios</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-4">Usuarios</h1>
 
       <form onSubmit={onSubmit} className="bg-white rounded-lg border border-slate-200 p-4 mb-6 space-y-3">
         <div className="flex items-center gap-4">

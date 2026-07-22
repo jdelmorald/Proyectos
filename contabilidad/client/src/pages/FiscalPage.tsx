@@ -27,7 +27,7 @@ export default function FiscalPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Módulo Fiscal</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Módulo Fiscal</h1>
         <p className="text-sm text-slate-500 mt-0.5">Disciplina fiscal según la legislación venezolana: IVA, ISLR, IGTF e Impuesto Municipal.</p>
       </div>
 

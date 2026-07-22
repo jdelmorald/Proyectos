@@ -7,6 +7,8 @@ import sumivensaLogo from '../assets/sumivensa-logo.png';
 import indeldercaLogo from '../assets/indelderca-logo.png';
 import saludsanmarcosLogo from '../assets/saludsanmarcos-logo.jpg';
 import uomoLogo from '../assets/uomo-logo.png';
+import AnimatedBackground from '../components/AnimatedBackground';
+import Marquee from '../components/Marquee';
 
 interface EmpresaVisible {
   id: number;
@@ -106,36 +108,37 @@ export default function SeleccionarEmpresaPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <div className="h-1.5 bg-gradient-to-r from-brand-900 via-gold-500 to-accent-600" />
+    <div className="min-h-screen flex flex-col">
+      <AnimatedBackground />
+      <Marquee />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <div className="text-center mb-2">
-          <div className="text-sm font-semibold tracking-[0.25em] text-gold-600">SISTEMA CONTABLE · GRUPO DELDER</div>
+          <div className="text-sm font-semibold tracking-[0.25em] text-gold-400">SISTEMA CONTABLE · GRUPO DELDER</div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-brand-900 text-center mt-4">
+        <h1 className="text-3xl sm:text-4xl font-display font-semibold text-white text-center mt-4">
           BIENVENIDO{user?.nombre ? `, ${user.nombre.toUpperCase()}` : ''}
         </h1>
-        <p className="text-slate-500 mt-2 mb-10 text-center">¿A qué empresa deseas acceder?</p>
+        <p className="text-white/50 mt-2 mb-10 text-center">¿A qué empresa deseas acceder?</p>
 
         {loading || todasLoading ? (
-          <div className="text-slate-400">Cargando empresas...</div>
+          <div className="text-white/40">Cargando empresas...</div>
         ) : empresasOrdenadas.length === 0 ? (
-          <div className="text-center text-slate-400 max-w-sm">
+          <div className="text-center text-white/40 max-w-sm">
             Todavía no hay empresas registradas en el sistema.
           </div>
         ) : (
           <>
             {aviso && (
-              <div className="w-full max-w-6xl mb-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 text-center">
+              <div className="w-full max-w-6xl mb-5 rounded-lg border border-red-400/40 bg-red-500/10 backdrop-blur-sm px-4 py-3 text-sm font-semibold text-red-300 text-center">
                 ⚠ {aviso}
               </div>
             )}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full max-w-6xl">
               {empresasOrdenadas.map((empresa) => {
                 const tieneAcceso = idsConAcceso.has(empresa.id);
-                const sinAccesoClass = tieneAcceso ? '' : 'opacity-50 grayscale-[0.4]';
+                const sinAccesoClass = tieneAcceso ? '' : 'opacity-50 grayscale-[0.5]';
                 const marca = MARCAS.find((m) => m.match === empresa.nombre);
                 if (marca) {
                   return (
@@ -143,12 +146,12 @@ export default function SeleccionarEmpresaPage() {
                       key={empresa.id}
                       onClick={() => elegir(empresa)}
                       title={tieneAcceso ? undefined : 'No cuentas con permisos para acceder a esta empresa'}
-                      className={`relative bg-white rounded-2xl border-2 p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 shadow-sm hover:shadow-xl transition-all ${marca.cardClass} ${sinAccesoClass}`}
+                      className={`group relative bg-white/90 backdrop-blur-xl rounded-2xl border-2 p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 shadow-xl shadow-black/20 hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ${marca.cardClass} ${sinAccesoClass}`}
                     >
                       {!tieneAcceso && (
                         <span className="absolute top-2 right-2 text-xs" aria-hidden="true">🔒</span>
                       )}
-                      <img src={marca.logo} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain" />
+                      <img src={marca.logo} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
                       <div className={`text-sm sm:text-lg font-extrabold tracking-tight text-center ${marca.titleClass}`}>
                         {empresa.nombre.toUpperCase()}
                       </div>
@@ -165,13 +168,13 @@ export default function SeleccionarEmpresaPage() {
                     onClick={() => elegir(empresa)}
                     title={tieneAcceso ? undefined : 'No cuentas con permisos para acceder a esta empresa'}
                     style={{ borderColor: `${color}4d` }}
-                    className={`relative bg-white rounded-2xl border-2 p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 shadow-sm hover:shadow-xl transition-all ${sinAccesoClass}`}
+                    className={`group relative bg-white/90 backdrop-blur-xl rounded-2xl border-2 p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 shadow-xl shadow-black/20 hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ${sinAccesoClass}`}
                   >
                     {!tieneAcceso && (
                       <span className="absolute top-2 right-2 text-xs" aria-hidden="true">🔒</span>
                     )}
                     {empresa.logo_data_url ? (
-                      <img src={empresa.logo_data_url} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain" />
+                      <img src={empresa.logo_data_url} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
                     ) : (
                       <div
                         className="h-14 w-14 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white"
@@ -189,7 +192,7 @@ export default function SeleccionarEmpresaPage() {
           </>
         )}
 
-        <button onClick={() => { logout(); navigate('/login'); }} className="mt-12 text-sm text-slate-400 hover:text-slate-600 hover:underline">
+        <button onClick={() => { logout(); navigate('/login'); }} className="mt-12 text-sm text-white/40 hover:text-white/70 hover:underline">
           Cerrar sesión
         </button>
       </div>

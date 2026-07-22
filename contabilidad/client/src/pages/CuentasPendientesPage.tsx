@@ -96,7 +96,7 @@ export default function CuentasPendientesPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Cuentas por Cobrar y por Pagar</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Cuentas por Cobrar y por Pagar</h1>
         <p className="text-sm text-slate-500 mt-0.5">Subledger de saldos pendientes por tercero, generado automáticamente desde el Libro Diario.</p>
       </div>
 

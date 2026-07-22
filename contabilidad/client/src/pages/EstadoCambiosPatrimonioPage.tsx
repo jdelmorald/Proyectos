@@ -33,7 +33,7 @@ export default function EstadoCambiosPatrimonioPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">Estado de Cambios en el Patrimonio Neto</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-1">Estado de Cambios en el Patrimonio Neto</h1>
       <p className="text-sm text-slate-500 mb-4">{empresa?.nombre} · del {desde} al {hasta}</p>
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">

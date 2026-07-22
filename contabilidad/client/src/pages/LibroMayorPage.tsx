@@ -43,7 +43,7 @@ export default function LibroMayorPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-4">Libro Mayor</h1>
+      <h1 className="text-2xl font-display font-semibold text-slate-800 mb-4">Libro Mayor</h1>
 
       <div className="flex flex-wrap gap-3 mb-4">
         <select value={cuentaId} onChange={(e) => setCuentaId(e.target.value ? Number(e.target.value) : '')} className="rounded-md border border-slate-300 px-3 py-2 w-full max-w-sm">

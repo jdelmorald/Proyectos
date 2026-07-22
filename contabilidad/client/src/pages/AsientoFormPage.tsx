@@ -178,7 +178,7 @@ export default function AsientoFormPage() {
       <div className="p-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Asiento {asiento.numero}</h1>
+            <h1 className="text-2xl font-display font-semibold text-slate-800">Asiento {asiento.numero}</h1>
             <div className="text-sm text-slate-500">{asiento.fecha} · {asiento.descripcion}</div>
             <div className="text-xs text-slate-400 mt-0.5">
               Registrado por {asiento.creadoPorNombre || 'usuario eliminado'}
@@ -264,7 +264,7 @@ export default function AsientoFormPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Registrar Asiento</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-800">Registrar Asiento</h1>
         <Link to="/asientos" className="text-sm text-slate-500 hover:underline">← Volver al listado</Link>
       </div>
 
