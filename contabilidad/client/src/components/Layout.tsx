@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -101,6 +101,16 @@ export default function Layout() {
   const { user } = useAuth();
   const { empresa } = useEmpresa();
   const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Según el contenido de cada página, lo que scrollea puede ser el <main>
+  // interno o la ventana completa — se resetean los dos para cubrir ambos
+  // casos, si no un cambio de sección deja al usuario en la misma posición
+  // donde iba scrolleado en la pantalla anterior.
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -246,7 +256,7 @@ export default function Layout() {
       </aside>
       <div className="flex-1 min-w-0 flex flex-col">
         <TopBar />
-        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
           <div key={location.pathname} className="animate-entrada">
             <Outlet />
           </div>
