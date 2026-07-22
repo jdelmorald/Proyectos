@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tipografía de despliegue (títulos, cifras destacadas): un grotesco técnico
+   de corte geométrico — la identidad "vanguardista" del sistema — autoalojado
+   para que funcione sin conexión en la instalación local, nunca depende de
+   un CDN externo. */
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ChakraPetch-600.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/ChakraPetch-700.ttf') format('truetype');
+}
+
+/* Transición de pantalla: cada vez que se monta una página (login → selección
+   de empresa → panel interno, o al cambiar de sección dentro del panel) esto
+   reemplaza el corte seco por una entrada suave, sutil y breve. */
+@keyframes entrarPagina {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-entrada {
+  animation: entrarPagina 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-entrada { animation: none; }
+}
+
+/* Fondo animado (Login / Bienvenida): un "muro" denso de cifras bursátiles
+   generadas en vivo (ver AnimatedBackground.tsx) que se desplazan sin fin,
+   con un desenfoque de profundidad encima — nítido en una zona amplia
+   ('derecha', Login) o parejo en toda la pantalla ('parejo', Bienvenida).
+   Todo CSS puro, sin canvas/video. */
+.muro-datos { pointer-events: none; }
+.muro-columna { position: relative; flex: 1 1 0; overflow: hidden; height: 128vh; }
+.muro-pista {
+  display: flex;
+  flex-direction: column;
+  animation-name: muroDesplazar;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes muroDesplazar {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+.muro-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.5vw;
+  padding: 0.8vh 0.45vw;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid rgba(214, 226, 245, 0.05);
+}
+.muro-num {
+  font-family: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(0.8rem, 1.35vw, 1.35rem);
+  font-weight: 600;
+  color: rgba(214, 226, 245, 0.72);
+  letter-spacing: 0.02em;
+}
+.muro-pct { font-size: clamp(0.6rem, 0.88vw, 0.95rem); font-weight: 600; letter-spacing: 0.01em; }
+.muro-up { color: #34d97e; text-shadow: 0 0 9px rgba(52, 217, 126, 0.55); }
+.muro-down { color: #f4485c; text-shadow: 0 0 9px rgba(244, 72, 92, 0.55); }
+.muro-flecha { font-size: clamp(0.55rem, 0.82vw, 0.85rem); }
+
+/* Login: zona nítida amplia, desplazada a la derecha (el panel de vidrio va a la izquierda) */
+.muro-velo-enfoque {
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  mask-image: radial-gradient(ellipse 56% 66% at 66% 46%, transparent 0%, transparent 40%, black 82%);
+  -webkit-mask-image: radial-gradient(ellipse 56% 66% at 66% 46%, transparent 0%, transparent 40%, black 82%);
+}
+.muro-velo-fuerte {
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  mask-image: radial-gradient(ellipse 40% 48% at 66% 46%, transparent 0%, transparent 25%, black 65%);
+  -webkit-mask-image: radial-gradient(ellipse 40% 48% at 66% 46%, transparent 0%, transparent 25%, black 65%);
+}
+
+/* Bienvenida: desenfoque parejo en toda la pantalla, sin punto de foco —
+   así ninguna zona compite visualmente con el texto ni con una tarjeta más
+   que con las otras. */
+.muro-velo-parejo {
+  pointer-events: none;
+  backdrop-filter: blur(6.5px);
+  -webkit-backdrop-filter: blur(6.5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .muro-pista { animation: none !important; }
+}
+
+/* Marquesina de índices (pantalla de bienvenida): cinta que se desplaza sin
+   fin — el contenido se duplica una vez en el JSX para que el loop no salte. */
+.marquesina-pista {
+  animation: desplazarMarquesina 32s linear infinite;
+}
+.marquesina-pausada:hover .marquesina-pista {
+  animation-play-state: paused;
+}
+@keyframes desplazarMarquesina {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquesina-pista {
+    animation: none !important;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: letter;
+    margin: 12mm;
+  }
+}
