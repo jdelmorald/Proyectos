@@ -187,6 +187,19 @@ fiscalRouter.get('/islr-estimado', (req, res) => {
   const empresa = db.prepare('SELECT valor_ut FROM empresas WHERE id = ?').get(empresaId) as { valor_ut: number } | undefined;
   const valorUt = empresa?.valor_ut ?? 0;
 
+  // Igual que en reportes.ts: el aporte de cada cuenta al total del grupo se
+  // calcula según la polaridad ESPERADA del tipo (ingreso=acreedora,
+  // costo/gasto=deudora), no según la naturaleza propia de la cuenta — así una
+  // cuenta "contra" (ej. Devoluciones en Ventas, tipo ingreso pero naturaleza
+  // deudora) resta del total en vez de sumarse, y la Utilidad Fiscal para el
+  // ISLR no queda descuadrada por el mismo motivo que afectaba antes al
+  // Balance General.
+  const NATURALEZA_ESPERADA_POR_TIPO: Record<string, 'deudora' | 'acreedora'> = {
+    costo: 'deudora',
+    gasto: 'deudora',
+    ingreso: 'acreedora',
+  };
+
   function saldosPorTipo(tipos: string[]) {
     const placeholders = tipos.map(() => '?').join(',');
     let sql = `
@@ -201,7 +214,8 @@ fiscalRouter.get('/islr-estimado', (req, res) => {
     if (hasta) { sql += ' AND (a.fecha IS NULL OR a.fecha <= ?)'; params.push(hasta); }
     sql += ' GROUP BY pc.id';
     const filas = db.prepare(sql).all(...params) as any[];
-    return filas.reduce((s, f) => s + (f.naturaleza === 'acreedora' ? f.total_haber - f.total_debe : f.total_debe - f.total_haber), 0);
+    const naturalezaGrupo = NATURALEZA_ESPERADA_POR_TIPO[tipos[0]] ?? 'deudora';
+    return filas.reduce((s, f) => s + (naturalezaGrupo === 'acreedora' ? f.total_haber - f.total_debe : f.total_debe - f.total_haber), 0);
   }
 
   const utilidadFiscal = saldosPorTipo(['ingreso']) - saldosPorTipo(['costo']) - saldosPorTipo(['gasto']);

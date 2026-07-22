@@ -89,8 +89,14 @@ export default function LibroVentasPage() {
   }
 
   const totales = items.reduce(
-    (acc, r) => ({ base: acc.base + r.base_imponible, exento: acc.exento + r.exento, iva: acc.iva + r.iva_monto, total: acc.total + r.total }),
-    { base: 0, exento: 0, iva: 0, total: 0 }
+    (acc, r) => ({
+      base: acc.base + r.base_imponible,
+      exento: acc.exento + r.exento,
+      iva: acc.iva + r.iva_monto,
+      retenido: acc.retenido + r.iva_retenido,
+      total: acc.total + r.total,
+    }),
+    { base: 0, exento: 0, iva: 0, retenido: 0, total: 0 }
   );
 
   return (
@@ -151,12 +157,13 @@ export default function LibroVentasPage() {
             { header: 'Base', key: 'base_imponible', align: 'right' },
             { header: 'Exento', key: 'exento', align: 'right' },
             { header: 'IVA', key: 'iva_monto', align: 'right' },
+            { header: 'Ret. IVA', key: 'iva_retenido', align: 'right' },
             { header: 'Total', key: 'total', align: 'right' },
           ]}
           filas={items}
           filaTotales={{
             fecha: '', numero_factura: '', cliente_nombre: 'Totales', cliente_rif: '',
-            base_imponible: totales.base, exento: totales.exento, iva_monto: totales.iva, total: totales.total,
+            base_imponible: totales.base, exento: totales.exento, iva_monto: totales.iva, iva_retenido: totales.retenido, total: totales.total,
           }}
         />
       </div>
@@ -167,7 +174,8 @@ export default function LibroVentasPage() {
             <tr>
               <th className="px-3 py-2">Fecha</th><th className="px-3 py-2">Factura</th><th className="px-3 py-2">Cliente</th>
               <th className="px-3 py-2 text-right">Base</th><th className="px-3 py-2 text-right">Exento</th>
-              <th className="px-3 py-2 text-right">IVA</th><th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2"></th>
+              <th className="px-3 py-2 text-right">IVA</th><th className="px-3 py-2 text-right">Ret. IVA</th>
+              <th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -179,11 +187,12 @@ export default function LibroVentasPage() {
                 <td className="px-3 py-2 text-right">{formatearMonto(r.base_imponible)}</td>
                 <td className="px-3 py-2 text-right">{formatearMonto(r.exento)}</td>
                 <td className="px-3 py-2 text-right">{formatearMonto(r.iva_monto)}</td>
+                <td className="px-3 py-2 text-right">{formatearMonto(r.iva_retenido)}</td>
                 <td className="px-3 py-2 text-right font-medium">{formatearMonto(r.total)}</td>
                 <td className="px-3 py-2 text-right"><button onClick={() => eliminar(r.id)} className="text-red-600 hover:underline text-xs">Eliminar</button></td>
               </tr>
             ))}
-            {items.length === 0 && <tr><td colSpan={8} className="px-4 py-6 text-center text-slate-400">Sin registros</td></tr>}
+            {items.length === 0 && <tr><td colSpan={9} className="px-4 py-6 text-center text-slate-400">Sin registros</td></tr>}
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-slate-800 font-bold">
@@ -191,6 +200,7 @@ export default function LibroVentasPage() {
               <td className="px-3 py-2 text-right">{formatearMonto(totales.base)}</td>
               <td className="px-3 py-2 text-right">{formatearMonto(totales.exento)}</td>
               <td className="px-3 py-2 text-right">{formatearMonto(totales.iva)}</td>
+              <td className="px-3 py-2 text-right">{formatearMonto(totales.retenido)}</td>
               <td className="px-3 py-2 text-right">{formatearMonto(totales.total)}</td>
               <td></td>
             </tr>

@@ -177,6 +177,26 @@ reportesRouter.get('/balance-comprobacion', (req, res) => {
   res.json({ cuentas, totales });
 });
 
+// Polaridad "normal" de cada tipo de cuenta para efectos de TOTALIZAR un grupo
+// (activo/costo/gasto son deudores por naturaleza; pasivo/patrimonio/ingreso son
+// acreedores). La mayoría de las cuentas tienen pc.naturaleza igual a esto, pero
+// el plan de cuentas admite cuentas "contra" dentro de un tipo — el caso real más
+// común es Depreciación Acumulada: tipo 'activo' pero naturaleza 'acreedora',
+// porque resta del activo en vez de sumar. Si se usara pc.naturaleza (la propia
+// de la cuenta) para calcular su aporte al total del grupo, una cuenta contra
+// terminaría SUMÁNDOSE al total en vez de restar, descuadrando Balance General y
+// Dashboard exactamente por el doble de su saldo. Por eso el saldo de cada cuenta
+// dentro de un grupo se calcula según la polaridad esperada del GRUPO, no de la
+// cuenta individual — así una cuenta contra naturalmente aporta en negativo.
+const NATURALEZA_ESPERADA_POR_TIPO: Record<string, 'deudora' | 'acreedora'> = {
+  activo: 'deudora',
+  costo: 'deudora',
+  gasto: 'deudora',
+  pasivo: 'acreedora',
+  patrimonio: 'acreedora',
+  ingreso: 'acreedora',
+};
+
 function saldosPorTipo(empresaId: number, hasta: string | undefined, desde: string | undefined, tipos: string[]) {
   let sql = `
     SELECT pc.id, pc.codigo, pc.nombre, pc.tipo, pc.naturaleza,
@@ -197,6 +217,7 @@ function saldosPorTipo(empresaId: number, hasta: string | undefined, desde: stri
   sql += ' WHERE ' + conditions.join(' AND ') + ' GROUP BY pc.id ORDER BY pc.codigo';
 
   const filas = db.prepare(sql).all(...params) as any[];
+  const naturalezaGrupo = NATURALEZA_ESPERADA_POR_TIPO[tipos[0]] ?? 'deudora';
   return filas
     .filter((f) => f.total_debe > 0 || f.total_haber > 0)
     .map((f) => ({
@@ -204,7 +225,7 @@ function saldosPorTipo(empresaId: number, hasta: string | undefined, desde: stri
       codigo: f.codigo,
       nombre: f.nombre,
       tipo: f.tipo,
-      saldo: saldoCuenta(f.naturaleza, f.total_debe, f.total_haber),
+      saldo: saldoCuenta(naturalezaGrupo, f.total_debe, f.total_haber),
     }));
 }
 
