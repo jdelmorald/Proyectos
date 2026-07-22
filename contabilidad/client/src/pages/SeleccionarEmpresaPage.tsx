@@ -9,6 +9,7 @@ import saludsanmarcosLogo from '../assets/saludsanmarcos-logo.jpg';
 import uomoLogo from '../assets/uomo-logo.png';
 import AnimatedBackground from '../components/AnimatedBackground';
 import Marquee from '../components/Marquee';
+import EmpresaCard from '../components/EmpresaCard';
 
 interface EmpresaVisible {
   id: number;
@@ -27,6 +28,7 @@ interface MarcaConfig {
   logo: string;
   cardClass: string;
   titleClass: string;
+  glow: string;
   bar: ReactNode;
 }
 
@@ -34,22 +36,25 @@ const MARCAS: MarcaConfig[] = [
   {
     match: 'Sumivensa',
     logo: sumivensaLogo,
-    cardClass: 'border-sumivensa-brand-500/30 hover:border-sumivensa-accent-500 hover:shadow-sumivensa-brand-900/20',
+    cardClass: 'border-sumivensa-brand-500/30',
     titleClass: 'text-sumivensa-brand-900',
+    glow: '#d6293a',
     bar: <div className="h-1.5 rounded-full bg-sumivensa-accent-500" />,
   },
   {
     match: 'Salud San Marcos',
     logo: saludsanmarcosLogo,
-    cardClass: 'border-saludsanmarcos-brand-500/30 hover:border-saludsanmarcos-accent-500 hover:shadow-saludsanmarcos-brand-900/20',
+    cardClass: 'border-saludsanmarcos-brand-500/30',
     titleClass: 'text-saludsanmarcos-brand-900',
+    glow: '#1fb3b3',
     bar: <div className="h-1.5 rounded-full bg-saludsanmarcos-accent-500" />,
   },
   {
     match: 'Indelderca',
     logo: indeldercaLogo,
-    cardClass: 'border-indelderca-brand-500/30 hover:border-indelderca-brand-700 hover:shadow-indelderca-brand-900/20',
+    cardClass: 'border-indelderca-brand-500/30',
     titleClass: 'text-indelderca-brand-900',
+    glow: '#1a4a8c',
     bar: (
       <div className="flex h-1.5 rounded-full overflow-hidden border border-slate-300">
         <div className="flex-1 bg-indelderca-italia" />
@@ -61,8 +66,9 @@ const MARCAS: MarcaConfig[] = [
   {
     match: 'Uomo Store',
     logo: uomoLogo,
-    cardClass: 'border-uomo-brand-500/30 hover:border-uomo-accent-500 hover:shadow-uomo-brand-900/20',
+    cardClass: 'border-uomo-brand-500/30',
     titleClass: 'text-uomo-brand-900',
+    glow: '#e2833c',
     bar: <div className="h-1.5 rounded-full bg-uomo-accent-500" />,
   },
 ];
@@ -138,54 +144,49 @@ export default function SeleccionarEmpresaPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full max-w-6xl">
               {empresasOrdenadas.map((empresa) => {
                 const tieneAcceso = idsConAcceso.has(empresa.id);
-                const sinAccesoClass = tieneAcceso ? '' : 'opacity-50 grayscale-[0.5]';
                 const marca = MARCAS.find((m) => m.match === empresa.nombre);
                 if (marca) {
                   return (
-                    <button
+                    <EmpresaCard
                       key={empresa.id}
                       onClick={() => elegir(empresa)}
                       title={tieneAcceso ? undefined : 'No cuentas con permisos para acceder a esta empresa'}
-                      className={`group relative bg-white/90 backdrop-blur-xl rounded-2xl border-2 p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 shadow-xl shadow-black/20 hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ${marca.cardClass} ${sinAccesoClass}`}
-                    >
-                      {!tieneAcceso && (
-                        <span className="absolute top-2 right-2 text-xs" aria-hidden="true">🔒</span>
-                      )}
-                      <img src={marca.logo} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
-                      <div className={`text-sm sm:text-lg font-extrabold tracking-tight text-center ${marca.titleClass}`}>
-                        {empresa.nombre.toUpperCase()}
-                      </div>
-                      <div className="w-16">{marca.bar}</div>
-                    </button>
+                      disabled={!tieneAcceso}
+                      borderClass={marca.cardClass}
+                      glowColor={marca.glow}
+                      logo={<img src={marca.logo} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain" />}
+                      nombre={empresa.nombre.toUpperCase()}
+                      nombreClass={marca.titleClass}
+                      bar={marca.bar}
+                    />
                   );
                 }
                 // Empresa sin marca predefinida (agregada desde Configuración → Empresas):
                 // misma tarjeta, pero con su logo y color propios en vez de los 3 de fábrica.
                 const color = empresa.color || '#0f766e';
                 return (
-                  <button
+                  <EmpresaCard
                     key={empresa.id}
                     onClick={() => elegir(empresa)}
                     title={tieneAcceso ? undefined : 'No cuentas con permisos para acceder a esta empresa'}
-                    style={{ borderColor: `${color}4d` }}
-                    className={`group relative bg-white/90 backdrop-blur-xl rounded-2xl border-2 p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 shadow-xl shadow-black/20 hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ${sinAccesoClass}`}
-                  >
-                    {!tieneAcceso && (
-                      <span className="absolute top-2 right-2 text-xs" aria-hidden="true">🔒</span>
-                    )}
-                    {empresa.logo_data_url ? (
-                      <img src={empresa.logo_data_url} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
-                    ) : (
-                      <div
-                        className="h-14 w-14 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white"
-                        style={{ backgroundColor: color }}
-                      >
-                        {empresa.nombre.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="text-sm sm:text-lg font-extrabold tracking-tight text-center text-brand-900">{empresa.nombre.toUpperCase()}</div>
-                    <div className="w-16 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                  </button>
+                    disabled={!tieneAcceso}
+                    borderColorInline={`${color}4d`}
+                    glowColor={color}
+                    logo={
+                      empresa.logo_data_url ? (
+                        <img src={empresa.logo_data_url} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain" />
+                      ) : (
+                        <div
+                          className="h-14 w-14 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white"
+                          style={{ backgroundColor: color }}
+                        >
+                          {empresa.nombre.slice(0, 2).toUpperCase()}
+                        </div>
+                      )
+                    }
+                    nombre={empresa.nombre.toUpperCase()}
+                    bar={<div className="w-16 h-1.5 rounded-full" style={{ backgroundColor: color }} />}
+                  />
                 );
               })}
             </div>

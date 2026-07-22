@@ -9,8 +9,8 @@ interface TasaHistorial {
   tasa: number;
 }
 
-const NOMBRE_MONEDA: Record<string, string> = { USD: 'Dólar BCV', EUR: 'Euro BCV', COP: 'Peso COP' };
 const MONEDAS = ['USD', 'EUR', 'COP'] as const;
+const SIMBOLO: Record<(typeof MONEDAS)[number], string> = { USD: 'USD/VES', EUR: 'EUR/VES', COP: 'COP/VES' };
 
 function useReloj() {
   const [ahora, setAhora] = useState(new Date());
@@ -21,12 +21,29 @@ function useReloj() {
   return ahora;
 }
 
+function Ticker({ simbolo, valor, delta, decimales = 2 }: { simbolo: string; valor: number; delta: number | null; decimales?: number }) {
+  const subio = delta !== null && delta > 0.0001;
+  const bajo = delta !== null && delta < -0.0001;
+  return (
+    <span className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] pl-2 pr-2.5 py-1">
+      <span className="font-display text-[11px] font-semibold tracking-wide text-gold-400">{simbolo}</span>
+      <span className="tabular-nums text-sm font-medium text-white">{formatearMonto(valor, decimales)}</span>
+      {delta !== null && (subio || bajo) && (
+        <span className={`flex items-center gap-0.5 tabular-nums text-[11px] font-semibold ${subio ? 'text-accent-400' : 'text-red-400'}`}>
+          {subio ? '▲' : '▼'} {formatearMonto(Math.abs(delta), decimales)}
+        </span>
+      )}
+    </span>
+  );
+}
+
 /**
  * Marquesina estilo Wall Street para la pantalla de bienvenida: fecha, hora
- * en vivo y las tasas de cambio más recientes (con la variación frente a la
- * tasa anterior), tomadas de Configuración → Tasas de Cambio. Todavía no
- * consulta bcv.org.ve en vivo — usa la última tasa que el equipo ya registró
- * en el sistema, para no depender de que la PC tenga internet en cada carga.
+ * en vivo, las tasas BCV más recientes (con variación frente a la tasa
+ * anterior) y el cruce peso colombiano/dólar derivado de las mismas tasas.
+ * Todavía no consulta bcv.org.ve en vivo — usa la última tasa que el equipo
+ * ya registró en Configuración → Tasas de Cambio, para no depender de que la
+ * PC tenga internet en cada carga.
  */
 export default function Marquee() {
   const ahora = useReloj();
@@ -45,8 +62,8 @@ export default function Marquee() {
   const hora = ahora.toLocaleTimeString('es-VE');
 
   const items: ReactNode[] = [
-    <span key="fecha" className="capitalize text-white/70">{fecha}</span>,
-    <span key="hora" className="font-semibold tabular-nums text-white">{hora}</span>,
+    <span key="fecha" className="capitalize text-white/60 text-xs">{fecha}</span>,
+    <span key="hora" className="font-display font-semibold tabular-nums text-white text-sm">{hora}</span>,
   ];
 
   MONEDAS.forEach((moneda) => {
@@ -55,34 +72,36 @@ export default function Marquee() {
     const actual = hist[0].tasa;
     const anterior = hist[1]?.tasa;
     const delta = anterior !== undefined ? actual - anterior : null;
-    items.push(
-      <span key={moneda} className="flex items-center gap-1.5">
-        <span className="text-gold-400 font-semibold">{NOMBRE_MONEDA[moneda]}</span>
-        <span className="tabular-nums text-white">{formatearMonto(actual)}</span>
-        {delta !== null && Math.abs(delta) > 0.0001 && (
-          <span className={`tabular-nums text-[11px] ${delta > 0 ? 'text-accent-400' : 'text-red-400'}`}>
-            {delta > 0 ? '▲' : '▼'} {formatearMonto(Math.abs(delta))}
-          </span>
-        )}
-      </span>
-    );
+    items.push(<Ticker key={moneda} simbolo={SIMBOLO[moneda]} valor={actual} delta={delta} />);
   });
+
+  // Cruce peso colombiano / dólar, derivado de las dos tasas frente al bolívar
+  // que ya tenemos (BsPorUSD ÷ BsPorCOP = COP por cada USD) — sin necesitar
+  // ninguna fuente de datos nueva.
+  const histUsd = tasas.USD;
+  const histCop = tasas.COP;
+  if (histUsd?.[0] && histCop?.[0]) {
+    const cruceActual = histUsd[0].tasa / histCop[0].tasa;
+    const cruceAnterior = histUsd[1] && histCop[1] ? histUsd[1].tasa / histCop[1].tasa : null;
+    const deltaCruce = cruceAnterior !== null ? cruceActual - cruceAnterior : null;
+    items.push(<Ticker key="cop-usd" simbolo="USD/COP" valor={cruceActual} delta={deltaCruce} decimales={0} />);
+  }
 
   if (items.length <= 2) return null;
 
   const pista = (
-    <div className="flex items-center gap-8 pr-8 shrink-0">
+    <div className="flex items-center gap-4 pr-4 shrink-0">
       {items.map((it, i) => (
-        <span key={i} className="flex items-center gap-8 whitespace-nowrap text-xs">
+        <span key={i} className="flex items-center gap-4 whitespace-nowrap">
           {it}
-          <span className="text-gold-500/30">•</span>
+          <span className="text-gold-500/25 text-xs">✦</span>
         </span>
       ))}
     </div>
   );
 
   return (
-    <div className="marquesina-pausada relative overflow-hidden border-y border-white/10 bg-black/30 backdrop-blur-sm py-2">
+    <div className="marquesina-pausada relative overflow-hidden border-y border-white/10 bg-black/40 backdrop-blur-md py-2 shadow-lg shadow-black/20">
       <div className="marquesina-pista flex w-max">
         {pista}
         {pista}

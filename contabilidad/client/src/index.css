@@ -2,22 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tipografía de despliegue (títulos, cifras destacadas): un serif con
-   carácter propio, autoalojado para que funcione sin conexión en la
-   instalación local — nunca depende de un CDN externo. */
+/* Tipografía de despliegue (títulos, cifras destacadas): un grotesco técnico
+   de corte geométrico — la identidad "vanguardista" del sistema — autoalojado
+   para que funcione sin conexión en la instalación local, nunca depende de
+   un CDN externo. */
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'Chakra Petch';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/Fraunces-600.ttf') format('truetype');
+  src: url('/fonts/ChakraPetch-600.ttf') format('truetype');
 }
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'Chakra Petch';
   font-style: normal;
-  font-weight: 900;
+  font-weight: 700;
   font-display: swap;
-  src: url('/fonts/Fraunces-900.ttf') format('truetype');
+  src: url('/fonts/ChakraPetch-700.ttf') format('truetype');
 }
 
 /* Fondo animado (Login / Bienvenida): retícula tipo terminal financiero que
@@ -68,10 +69,46 @@
   to { background-position-x: -400px; }
 }
 
+/* Contorno de Venezuela: giro casi imperceptible, como un radar lento. */
+.fondo-mapa-ve {
+  transform-origin: 55% 45%;
+  animation: girarMapa 90s linear infinite;
+}
+@keyframes girarMapa {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Relámpago del Catatumbo: doble destello ocasional, nunca constante — así
+   se lee como un fenómeno real y no como una luz parpadeando sin sentido. */
+.fondo-rayo {
+  opacity: 0;
+  filter: drop-shadow(0 0 6px #f3d98b);
+  animation: destelloRayo 9s ease-in-out infinite;
+}
+@keyframes destelloRayo {
+  0%, 78%, 100% { opacity: 0; }
+  79% { opacity: 0.95; }
+  80.5% { opacity: 0.15; }
+  82% { opacity: 0.8; }
+  84% { opacity: 0; }
+}
+.fondo-flash-rayo {
+  background: radial-gradient(ellipse at 75% 10%, rgba(243, 217, 139, 0.16) 0%, rgba(243, 217, 139, 0) 55%);
+  opacity: 0;
+  animation: destelloCielo 9s ease-in-out infinite;
+}
+@keyframes destelloCielo {
+  0%, 78%, 100% { opacity: 0; }
+  79%, 82% { opacity: 1; }
+  84% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .fondo-reticula, .fondo-orbe-oro, .fondo-orbe-esmeralda, .fondo-linea-tendencia {
+  .fondo-reticula, .fondo-orbe-oro, .fondo-orbe-esmeralda, .fondo-linea-tendencia, .fondo-mapa-ve, .fondo-rayo, .fondo-flash-rayo {
     animation: none !important;
   }
+  .fondo-rayo, .fondo-flash-rayo { opacity: 0 !important; }
 }
 
 /* Marquesina de índices (pantalla de bienvenida): cinta que se desplaza sin

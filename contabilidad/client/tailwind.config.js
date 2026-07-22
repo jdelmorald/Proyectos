@@ -4,9 +4,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Serif de despliegue: títulos de página, cifras destacadas del Dashboard,
-        // nombre de marca — usado con moderación, nunca para texto de cuerpo/tablas.
-        display: ['Fraunces', 'Georgia', 'serif'],
+        // Grotesco técnico de despliegue: títulos de página, cifras destacadas
+        // del Dashboard, nombre de marca — usado con moderación, nunca para
+        // texto de cuerpo/tablas (esas cifras necesitan la fuente de siempre,
+        // probada para legibilidad a tamaños pequeños).
+        display: ['Chakra Petch', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         // Azul marino profundo — identidad neutral de la Dirección Financiera (Sumivensa, Indelderca, Salud San Marcos).
