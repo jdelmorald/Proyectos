@@ -26,8 +26,6 @@ const ORDEN_PREFERIDO = ['Sumivensa', 'Salud San Marcos', 'Indelderca', 'Uomo St
 interface MarcaConfig {
   match: string;
   logo: string;
-  cardClass: string;
-  titleClass: string;
   glow: string;
   bar: ReactNode;
 }
@@ -36,24 +34,18 @@ const MARCAS: MarcaConfig[] = [
   {
     match: 'Sumivensa',
     logo: sumivensaLogo,
-    cardClass: 'border-sumivensa-brand-500/30',
-    titleClass: 'text-sumivensa-brand-900',
     glow: '#d6293a',
     bar: <div className="h-1.5 rounded-full bg-sumivensa-accent-500" />,
   },
   {
     match: 'Salud San Marcos',
     logo: saludsanmarcosLogo,
-    cardClass: 'border-saludsanmarcos-brand-500/30',
-    titleClass: 'text-saludsanmarcos-brand-900',
     glow: '#1fb3b3',
     bar: <div className="h-1.5 rounded-full bg-saludsanmarcos-accent-500" />,
   },
   {
     match: 'Indelderca',
     logo: indeldercaLogo,
-    cardClass: 'border-indelderca-brand-500/30',
-    titleClass: 'text-indelderca-brand-900',
     glow: '#1a4a8c',
     bar: (
       <div className="flex h-1.5 rounded-full overflow-hidden border border-slate-300">
@@ -66,8 +58,6 @@ const MARCAS: MarcaConfig[] = [
   {
     match: 'Uomo Store',
     logo: uomoLogo,
-    cardClass: 'border-uomo-brand-500/30',
-    titleClass: 'text-uomo-brand-900',
     glow: '#e2833c',
     bar: <div className="h-1.5 rounded-full bg-uomo-accent-500" />,
   },
@@ -152,11 +142,9 @@ export default function SeleccionarEmpresaPage() {
                       onClick={() => elegir(empresa)}
                       title={tieneAcceso ? undefined : 'No cuentas con permisos para acceder a esta empresa'}
                       disabled={!tieneAcceso}
-                      borderClass={marca.cardClass}
                       glowColor={marca.glow}
                       logo={<img src={marca.logo} alt={empresa.nombre} className="h-14 sm:h-20 w-auto object-contain" />}
                       nombre={empresa.nombre.toUpperCase()}
-                      nombreClass={marca.titleClass}
                       bar={marca.bar}
                     />
                   );
@@ -170,7 +158,6 @@ export default function SeleccionarEmpresaPage() {
                     onClick={() => elegir(empresa)}
                     title={tieneAcceso ? undefined : 'No cuentas con permisos para acceder a esta empresa'}
                     disabled={!tieneAcceso}
-                    borderColorInline={`${color}4d`}
                     glowColor={color}
                     logo={
                       empresa.logo_data_url ? (

@@ -69,46 +69,20 @@
   to { background-position-x: -400px; }
 }
 
-/* Contorno de Venezuela: giro casi imperceptible, como un radar lento. */
+/* Contorno de Venezuela: vaivén horizontal lento, de derecha a izquierda y
+   de vuelta — nunca gira, así siempre se reconoce como un mapa. */
 .fondo-mapa-ve {
-  transform-origin: 55% 45%;
-  animation: girarMapa 90s linear infinite;
+  animation: derivaMapa 70s ease-in-out infinite;
 }
-@keyframes girarMapa {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Relámpago del Catatumbo: doble destello ocasional, nunca constante — así
-   se lee como un fenómeno real y no como una luz parpadeando sin sentido. */
-.fondo-rayo {
-  opacity: 0;
-  filter: drop-shadow(0 0 6px #f3d98b);
-  animation: destelloRayo 9s ease-in-out infinite;
-}
-@keyframes destelloRayo {
-  0%, 78%, 100% { opacity: 0; }
-  79% { opacity: 0.95; }
-  80.5% { opacity: 0.15; }
-  82% { opacity: 0.8; }
-  84% { opacity: 0; }
-}
-.fondo-flash-rayo {
-  background: radial-gradient(ellipse at 75% 10%, rgba(243, 217, 139, 0.16) 0%, rgba(243, 217, 139, 0) 55%);
-  opacity: 0;
-  animation: destelloCielo 9s ease-in-out infinite;
-}
-@keyframes destelloCielo {
-  0%, 78%, 100% { opacity: 0; }
-  79%, 82% { opacity: 1; }
-  84% { opacity: 0; }
+@keyframes derivaMapa {
+  0%, 100% { transform: translateX(2%); }
+  50% { transform: translateX(-5%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fondo-reticula, .fondo-orbe-oro, .fondo-orbe-esmeralda, .fondo-linea-tendencia, .fondo-mapa-ve, .fondo-rayo, .fondo-flash-rayo {
+  .fondo-reticula, .fondo-orbe-oro, .fondo-orbe-esmeralda, .fondo-linea-tendencia, .fondo-mapa-ve {
     animation: none !important;
   }
-  .fondo-rayo, .fondo-flash-rayo { opacity: 0 !important; }
 }
 
 /* Marquesina de índices (pantalla de bienvenida): cinta que se desplaza sin
