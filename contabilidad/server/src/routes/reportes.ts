@@ -41,8 +41,13 @@ reportesRouter.get('/libro-diario', (req, res) => {
   let totalHaber = 0;
   const asientosVistos = new Set<number>();
   const lineas = filas.map((f) => {
-    totalDebe += f.debe;
-    totalHaber += f.haber;
+    // Los asientos anulados se listan (nunca se borra un correlativo), pero no
+    // se suman al total del pie — así el total del Libro Diario siempre
+    // coincide con el Balance de Comprobación, que tampoco los incluye.
+    if (f.estado !== 'anulado') {
+      totalDebe += f.debe;
+      totalHaber += f.haber;
+    }
     const esPrimeraLinea = !asientosVistos.has(f.asiento_id);
     asientosVistos.add(f.asiento_id);
     return {
