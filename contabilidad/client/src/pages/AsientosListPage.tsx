@@ -15,12 +15,66 @@ interface Asiento {
   lineas: { debe: number; haber: number }[];
 }
 
+interface LineaLibroDiario {
+  asientoId: number;
+  numero: string;
+  fecha: string;
+  estado: 'registrado' | 'anulado';
+  glosa: string | null;
+  cuentaCodigo: string;
+  cuentaNombre: string;
+  debe: number;
+  haber: number;
+  esPrimeraLinea: boolean;
+}
+
+interface LibroDiarioResponse {
+  lineas: LineaLibroDiario[];
+  totalDebe: number;
+  totalHaber: number;
+  totalAsientos: number;
+}
+
+/**
+ * Convierte las líneas planas del libro diario (una fila por línea de asiento)
+ * en las filas que espera el exportador: la cuenta acreedora se indenta como
+ * en un libro diario real (Debe a la izquierda, Haber indentado), y cada
+ * asiento cierra con una fila de glosa explicando el movimiento.
+ */
+function construirFilasLibroDiario(lineas: LineaLibroDiario[]) {
+  const filas: any[] = [];
+  lineas.forEach((l, i) => {
+    const anulado = l.estado === 'anulado';
+    filas.push({
+      fecha: l.esPrimeraLinea ? l.fecha : '',
+      numero: l.esPrimeraLinea ? l.numero : '',
+      cuenta: l.haber > 0 ? `      ${l.cuentaCodigo} — ${l.cuentaNombre}` : `${l.cuentaCodigo} — ${l.cuentaNombre}`,
+      debe: l.debe > 0 ? l.debe : '',
+      haber: l.haber > 0 ? l.haber : '',
+      _estilo: anulado ? 'anulado' : undefined,
+    });
+    const siguiente = lineas[i + 1];
+    if (!siguiente || siguiente.asientoId !== l.asientoId) {
+      filas.push({
+        fecha: '',
+        numero: '',
+        cuenta: `${l.glosa || 'Sin glosa'}${anulado ? '  —  ASIENTO ANULADO' : ''}`,
+        debe: '',
+        haber: '',
+        _estilo: anulado ? 'anulado' : 'glosa',
+      });
+    }
+  });
+  return filas;
+}
+
 export default function AsientosListPage() {
   const { empresaId, empresa } = useEmpresa();
   const [items, setItems] = useState<Asiento[]>([]);
   const [q, setQ] = useState('');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
+  const [libroDiario, setLibroDiario] = useState<LibroDiarioResponse | null>(null);
 
   async function cargar() {
     if (!empresaId) return;
@@ -31,8 +85,20 @@ export default function AsientosListPage() {
     setItems(await api.get<Asiento[]>(`/asientos?${params.toString()}`));
   }
 
+  async function cargarLibroDiario() {
+    if (!empresaId) return;
+    // El Libro Diario exportado es el registro cronológico completo del
+    // periodo (solo se filtra por fecha, no por el buscador de texto): es
+    // el documento formal, no una vista de búsqueda.
+    const params = new URLSearchParams({ empresaId: String(empresaId) });
+    if (desde) params.set('desde', desde);
+    if (hasta) params.set('hasta', hasta);
+    setLibroDiario(await api.get<LibroDiarioResponse>(`/reportes/libro-diario?${params.toString()}`));
+  }
+
   useEffect(() => {
     cargar();
+    cargarLibroDiario();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [empresaId]);
 
@@ -41,6 +107,11 @@ export default function AsientosListPage() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, desde, hasta]);
+
+  useEffect(() => {
+    cargarLibroDiario();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desde, hasta]);
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -57,26 +128,23 @@ export default function AsientosListPage() {
           <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
           <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2" />
         </div>
-        <BotonesExportar
-          empresa={empresa}
-          titulo="Libro Diario"
-          subtitulo={desde || hasta ? `Del ${desde || '...'} al ${hasta || '...'}` : undefined}
-          nombreArchivo="libro-diario"
-          columnas={[
-            { header: 'N°', key: 'numero' },
-            { header: 'Fecha', key: 'fecha' },
-            { header: 'Descripción', key: 'descripcion' },
-            { header: 'Monto', key: 'monto', align: 'right' },
-            { header: 'Estado', key: 'estado' },
-          ]}
-          filas={items.map((a) => ({
-            numero: a.numero,
-            fecha: a.fecha,
-            descripcion: a.descripcion || '',
-            monto: a.lineas.reduce((s, l) => s + l.debe, 0),
-            estado: a.estado,
-          }))}
-        />
+        {libroDiario && (
+          <BotonesExportar
+            empresa={empresa}
+            titulo="Libro Diario"
+            subtitulo={desde || hasta ? `Del ${desde || '...'} al ${hasta || '...'}` : undefined}
+            nombreArchivo="libro-diario"
+            columnas={[
+              { header: 'Fecha', key: 'fecha' },
+              { header: 'N°', key: 'numero' },
+              { header: 'Cuenta', key: 'cuenta' },
+              { header: 'Debe', key: 'debe', align: 'right' },
+              { header: 'Haber', key: 'haber', align: 'right' },
+            ]}
+            filas={construirFilasLibroDiario(libroDiario.lineas)}
+            filaTotales={{ fecha: '', numero: '', cuenta: `Totales (${libroDiario.totalAsientos} asientos)`, debe: libroDiario.totalDebe, haber: libroDiario.totalHaber }}
+          />
+        )}
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">

@@ -10,6 +10,59 @@ function saldoCuenta(naturaleza: 'deudora' | 'acreedora', debe: number, haber: n
   return naturaleza === 'deudora' ? debe - haber : haber - debe;
 }
 
+// Libro Diario: registro cronológico de TODOS los asientos con el detalle real
+// de partida doble (código de cuenta + Debe/Haber por línea), tal como exige
+// un libro diario formal — no una lista de vouchers con un solo monto total.
+// Incluye los asientos anulados (nunca se reutiliza ni se borra un correlativo)
+// para que el libro no tenga huecos de numeración sin explicación.
+reportesRouter.get('/libro-diario', (req, res) => {
+  const empresaId = Number(req.query.empresaId);
+  if (!empresaId) return res.status(400).json({ error: 'Debe indicar empresaId' });
+  const desde = req.query.desde as string | undefined;
+  const hasta = req.query.hasta as string | undefined;
+
+  let sql = `
+    SELECT a.id AS asiento_id, a.numero, a.fecha, a.descripcion AS glosa, a.estado,
+      al.orden, al.debe, al.haber, al.descripcion AS linea_descripcion,
+      pc.codigo AS cuenta_codigo, pc.nombre AS cuenta_nombre
+    FROM asiento_lineas al
+    JOIN asientos a ON a.id = al.asiento_id
+    JOIN plan_cuentas pc ON pc.id = al.cuenta_id
+    WHERE a.empresa_id = ?
+  `;
+  const params: (string | number)[] = [empresaId];
+  if (desde) { sql += ' AND a.fecha >= ?'; params.push(desde); }
+  if (hasta) { sql += ' AND a.fecha <= ?'; params.push(hasta); }
+  sql += ' ORDER BY a.fecha ASC, a.id ASC, al.orden ASC';
+
+  const filas = db.prepare(sql).all(...params) as any[];
+
+  let totalDebe = 0;
+  let totalHaber = 0;
+  const asientosVistos = new Set<number>();
+  const lineas = filas.map((f) => {
+    totalDebe += f.debe;
+    totalHaber += f.haber;
+    const esPrimeraLinea = !asientosVistos.has(f.asiento_id);
+    asientosVistos.add(f.asiento_id);
+    return {
+      asientoId: f.asiento_id,
+      numero: f.numero,
+      fecha: f.fecha,
+      estado: f.estado,
+      glosa: f.glosa,
+      cuentaCodigo: f.cuenta_codigo,
+      cuentaNombre: f.cuenta_nombre,
+      descripcionLinea: f.linea_descripcion,
+      debe: f.debe,
+      haber: f.haber,
+      esPrimeraLinea,
+    };
+  });
+
+  res.json({ lineas, totalDebe, totalHaber, totalAsientos: asientosVistos.size });
+});
+
 // Libro Mayor: movimientos de una cuenta específica con saldo acumulado
 reportesRouter.get('/libro-mayor/:cuentaId', requireAccesoRecurso('plan_cuentas', { nombreParam: 'cuentaId' }), (req, res) => {
   const cuentaId = Number(req.params.cuentaId);
@@ -18,6 +71,22 @@ reportesRouter.get('/libro-mayor/:cuentaId', requireAccesoRecurso('plan_cuentas'
 
   const cuenta = db.prepare('SELECT * FROM plan_cuentas WHERE id = ?').get(cuentaId) as any;
   if (!cuenta) return res.status(404).json({ error: 'Cuenta no encontrada' });
+
+  // Si se filtra por "desde", el saldo mostrado en cada movimiento debe partir
+  // del saldo acumulado ANTES de esa fecha (saldo inicial arrastrado), no de
+  // cero — de lo contrario la columna "Saldo" no representa el saldo real de
+  // la cuenta, solo el neto del periodo filtrado.
+  let saldoInicial = 0;
+  if (desde) {
+    const previos = db
+      .prepare(
+        `SELECT COALESCE(SUM(al.debe), 0) AS total_debe, COALESCE(SUM(al.haber), 0) AS total_haber
+         FROM asiento_lineas al JOIN asientos a ON a.id = al.asiento_id
+         WHERE al.cuenta_id = ? AND a.estado = 'registrado' AND a.fecha < ?`
+      )
+      .get(cuentaId, desde) as { total_debe: number; total_haber: number };
+    saldoInicial = saldoCuenta(cuenta.naturaleza, previos.total_debe, previos.total_haber);
+  }
 
   let sql = `
     SELECT al.*, a.numero, a.fecha, a.descripcion AS asiento_descripcion, a.estado
@@ -31,7 +100,7 @@ reportesRouter.get('/libro-mayor/:cuentaId', requireAccesoRecurso('plan_cuentas'
   sql += ' ORDER BY a.fecha, a.id, al.orden';
 
   const movimientos = db.prepare(sql).all(...params) as any[];
-  let saldo = 0;
+  let saldo = saldoInicial;
   const detalle = movimientos.map((m) => {
     saldo += saldoCuenta(cuenta.naturaleza, m.debe, m.haber);
     return {
@@ -47,6 +116,7 @@ reportesRouter.get('/libro-mayor/:cuentaId', requireAccesoRecurso('plan_cuentas'
 
   res.json({
     cuenta: { id: cuenta.id, codigo: cuenta.codigo, nombre: cuenta.nombre, naturaleza: cuenta.naturaleza },
+    saldoInicial,
     movimientos: detalle,
     saldoFinal: saldo,
   });

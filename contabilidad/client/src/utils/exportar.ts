@@ -26,9 +26,12 @@ export interface ColumnaExport {
 /**
  * Una fila normal se pinta como cualquier otra. `_estilo: 'subtotal'` la resalta
  * en un tono claro del color de la empresa (p.ej. "Total Activo Corriente");
- * `_estilo: 'total'` la pinta como barra sólida (p.ej. "TOTAL ACTIVOS").
+ * `_estilo: 'total'` la pinta como barra sólida (p.ej. "TOTAL ACTIVOS");
+ * `_estilo: 'anulado'` la marca en tono rojo tenue (p.ej. un asiento anulado
+ * dentro del Libro Diario, que debe seguir apareciendo pero claramente marcado);
+ * `_estilo: 'glosa'` la muestra en cursiva gris (la explicación de un asiento).
  */
-type EstiloFila = 'subtotal' | 'total' | undefined;
+type EstiloFila = 'subtotal' | 'total' | 'anulado' | 'glosa' | undefined;
 
 export interface BloqueColumnas {
   titulo: string;
@@ -273,6 +276,13 @@ function crearDidParseCell(filasOriginales: any[], colorPrincipal: [number, numb
       data.cell.styles.fillColor = colorSubtotal;
       data.cell.styles.textColor = colorPrincipal;
       data.cell.styles.fontStyle = 'bold';
+    } else if (estilo === 'anulado') {
+      data.cell.styles.fillColor = [254, 226, 226];
+      data.cell.styles.textColor = [153, 27, 27];
+      data.cell.styles.fontStyle = 'italic';
+    } else if (estilo === 'glosa') {
+      data.cell.styles.textColor = [130, 130, 130];
+      data.cell.styles.fontStyle = 'italic';
     }
   };
 }
@@ -381,6 +391,11 @@ export async function exportarExcel(opts: ExportOptions) {
     } else if (estilo === 'subtotal') {
       fila.font = { bold: true, color: { argb: colorArgb } };
       fila.eachCell((celda) => { celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; });
+    } else if (estilo === 'anulado') {
+      fila.font = { italic: true, color: { argb: 'FF991B1B' } };
+      fila.eachCell((celda) => { celda.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; });
+    } else if (estilo === 'glosa') {
+      fila.font = { italic: true, color: { argb: 'FF828282' } };
     }
   }
 

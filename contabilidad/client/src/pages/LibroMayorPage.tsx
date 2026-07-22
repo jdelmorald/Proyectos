@@ -26,7 +26,7 @@ export default function LibroMayorPage() {
   const [cuentaId, setCuentaId] = useState<number | ''>('');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
-  const [datos, setDatos] = useState<{ cuenta: any; movimientos: Movimiento[]; saldoFinal: number } | null>(null);
+  const [datos, setDatos] = useState<{ cuenta: any; movimientos: Movimiento[]; saldoInicial: number; saldoFinal: number } | null>(null);
 
   useEffect(() => {
     if (!empresaId) return;
@@ -76,7 +76,11 @@ export default function LibroMayorPage() {
                 { header: 'Haber', key: 'haber', align: 'right' },
                 { header: 'Saldo', key: 'saldo', align: 'right' },
               ]}
-              filas={datos.movimientos}
+              filas={
+                desde
+                  ? [{ numero: '', fecha: desde, descripcion: 'Saldo inicial', debe: '', haber: '', saldo: datos.saldoInicial, _estilo: 'subtotal' }, ...datos.movimientos]
+                  : datos.movimientos
+              }
               filaTotales={{ numero: '', fecha: '', descripcion: 'Saldo final', saldo: datos.saldoFinal }}
             />
           </div>
@@ -93,6 +97,14 @@ export default function LibroMayorPage() {
                 </tr>
               </thead>
               <tbody>
+                {desde && (
+                  <tr className="border-t border-slate-100 bg-slate-50 italic text-slate-500">
+                    <td className="px-4 py-2" colSpan={3}>Saldo inicial (antes del {desde})</td>
+                    <td className="px-4 py-2 text-right"></td>
+                    <td className="px-4 py-2 text-right"></td>
+                    <td className="px-4 py-2 text-right font-medium">{formatearMonto(datos.saldoInicial)}</td>
+                  </tr>
+                )}
                 {datos.movimientos.map((m, i) => (
                   <tr key={i} className="border-t border-slate-100">
                     <td className="px-4 py-2">{m.numero}</td>
