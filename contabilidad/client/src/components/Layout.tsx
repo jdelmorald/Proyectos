@@ -23,6 +23,7 @@ import {
   Home,
   ChevronDown,
   UserCircle,
+  PiggyBank,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useEmpresa } from '../context/EmpresaContext';
@@ -143,6 +144,9 @@ export default function Layout() {
               </NavLink>
               <NavLink to="/reportes/estado-resultados" className={({ isActive }) => linkClasses(isActive)}>
                 <TrendingUp size={17} strokeWidth={2} /> Estado de Resultados
+              </NavLink>
+              <NavLink to="/reportes/estado-cambios-patrimonio" className={({ isActive }) => linkClasses(isActive)}>
+                <PiggyBank size={17} strokeWidth={2} /> Cambios en el Patrimonio
               </NavLink>
               <NavLink to="/reportes/flujo-efectivo" className={({ isActive }) => linkClasses(isActive)}>
                 <Waves size={17} strokeWidth={2} /> Flujo de Efectivo

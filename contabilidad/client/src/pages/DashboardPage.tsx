@@ -12,7 +12,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { Wallet, Landmark, PiggyBank, TrendingUp, NotebookPen, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Wallet, Landmark, PiggyBank, TrendingUp, NotebookPen, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
 import { api } from '../api/client';
 import { useEmpresa } from '../context/EmpresaContext';
 import { formatearMonto } from '../utils/formato';
@@ -44,6 +44,9 @@ interface DashboardData {
   utilidadNeta: number;
   totalIngresos: number;
   totalGastos: number;
+  ebitda: number;
+  depreciacionYAmortizacion: number;
+  gastosFinancieros: number;
   serieMensual: SerieMes[];
   gastosPorCuenta: GastoCuenta[];
   asientosRecientes: AsientoReciente[];
@@ -68,13 +71,14 @@ function StatCard({
   label: string;
   value: number;
   moneda: string;
-  tone: 'blue' | 'red' | 'purple' | 'green';
+  tone: 'blue' | 'red' | 'purple' | 'green' | 'amber';
 }) {
   const tones = {
     blue: 'bg-sky-50 text-sky-600',
     red: 'bg-rose-50 text-rose-600',
     purple: 'bg-violet-50 text-violet-600',
     green: 'bg-accent-50 text-accent-700',
+    amber: 'bg-amber-50 text-amber-600',
   }[tone];
 
   return (
@@ -117,12 +121,16 @@ export default function DashboardPage() {
         <div className="text-slate-400">Cargando...</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <StatCard icon={<Landmark size={19} />} label="Total Activo" value={data.totalActivo} moneda={moneda} tone="blue" />
             <StatCard icon={<Wallet size={19} />} label="Total Pasivo" value={data.totalPasivo} moneda={moneda} tone="red" />
             <StatCard icon={<PiggyBank size={19} />} label="Patrimonio" value={data.totalPatrimonio} moneda={moneda} tone="purple" />
             <StatCard icon={<TrendingUp size={19} />} label="Utilidad Neta (año)" value={data.utilidadNeta} moneda={moneda} tone="green" />
+            <StatCard icon={<Activity size={19} />} label="EBITDA (año)" value={data.ebitda} moneda={moneda} tone="amber" />
           </div>
+          <p className="text-xs text-slate-400 -mt-3 mb-6">
+            EBITDA = Utilidad Neta + Depreciación/Amortización ({moneda} {fmt(data.depreciacionYAmortizacion)}) + Gastos Financieros ({moneda} {fmt(data.gastosFinancieros)}). Se identifican por el nombre de la cuenta de gasto — si renombras esas cuentas, revisa que el cálculo las siga reconociendo.
+          </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">

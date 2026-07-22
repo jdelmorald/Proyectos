@@ -12,6 +12,7 @@ import LibroMayorPage from './pages/LibroMayorPage';
 import BalanceComprobacionPage from './pages/BalanceComprobacionPage';
 import BalanceGeneralPage from './pages/BalanceGeneralPage';
 import EstadoResultadosPage from './pages/EstadoResultadosPage';
+import EstadoCambiosPatrimonioPage from './pages/EstadoCambiosPatrimonioPage';
 import FlujoEfectivoPage from './pages/FlujoEfectivoPage';
 import LibroComprasPage from './pages/LibroComprasPage';
 import LibroVentasPage from './pages/LibroVentasPage';
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/reportes/balance-comprobacion" element={<BalanceComprobacionPage />} />
         <Route path="/reportes/balance-general" element={<BalanceGeneralPage />} />
         <Route path="/reportes/estado-resultados" element={<EstadoResultadosPage />} />
+        <Route path="/reportes/estado-cambios-patrimonio" element={<EstadoCambiosPatrimonioPage />} />
         <Route path="/reportes/flujo-efectivo" element={<FlujoEfectivoPage />} />
         <Route path="/libro-compras" element={<LibroComprasPage />} />
         <Route path="/libro-ventas" element={<LibroVentasPage />} />

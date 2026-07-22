@@ -262,6 +262,68 @@ reportesRouter.get('/balance-general', (req, res) => {
   });
 });
 
+function saldoCuentaHasta(cuentaId: number, naturaleza: 'deudora' | 'acreedora', antesDe: string): number {
+  const r = db
+    .prepare(
+      `SELECT COALESCE(SUM(al.debe), 0) AS d, COALESCE(SUM(al.haber), 0) AS h
+       FROM asiento_lineas al JOIN asientos a ON a.id = al.asiento_id
+       WHERE al.cuenta_id = ? AND a.estado = 'registrado' AND a.fecha < ?`
+    )
+    .get(cuentaId, antesDe) as { d: number; h: number };
+  return saldoCuenta(naturaleza, r.d, r.h);
+}
+
+function movimientoCuentaEntre(cuentaId: number, naturaleza: 'deudora' | 'acreedora', desde: string, hasta: string): number {
+  const r = db
+    .prepare(
+      `SELECT COALESCE(SUM(al.debe), 0) AS d, COALESCE(SUM(al.haber), 0) AS h
+       FROM asiento_lineas al JOIN asientos a ON a.id = al.asiento_id
+       WHERE al.cuenta_id = ? AND a.estado = 'registrado' AND a.fecha >= ? AND a.fecha <= ?`
+    )
+    .get(cuentaId, desde, hasta) as { d: number; h: number };
+  return saldoCuenta(naturaleza, r.d, r.h);
+}
+
+// Estado de Cambios en el Patrimonio Neto: saldo inicial, movimientos del
+// periodo y saldo final de cada cuenta de patrimonio, más la utilidad del
+// ejercicio (todavía no cerrada a Utilidades Retenidas) como línea aparte —
+// exactamente como se presenta en un estado de cambios en el patrimonio real.
+reportesRouter.get('/estado-cambios-patrimonio', (req, res) => {
+  const empresaId = Number(req.query.empresaId);
+  if (!empresaId) return res.status(400).json({ error: 'Debe indicar empresaId' });
+  const desde = req.query.desde as string | undefined;
+  const hasta = req.query.hasta as string | undefined;
+  if (!desde || !hasta) return res.status(400).json({ error: 'Debe indicar desde y hasta' });
+
+  const cuentas = db
+    .prepare(`SELECT id, codigo, nombre, naturaleza FROM plan_cuentas WHERE empresa_id = ? AND tipo = 'patrimonio' AND permite_movimiento = 1 ORDER BY codigo`)
+    .all(empresaId) as { id: number; codigo: string; nombre: string; naturaleza: 'deudora' | 'acreedora' }[];
+
+  const filas = cuentas.map((c) => {
+    const saldoInicial = saldoCuentaHasta(c.id, c.naturaleza, desde);
+    const movimientoPeriodo = movimientoCuentaEntre(c.id, c.naturaleza, desde, hasta);
+    return { codigo: c.codigo, nombre: c.nombre, saldoInicial, movimientoPeriodo, saldoFinal: saldoInicial + movimientoPeriodo };
+  });
+
+  const ingresos = saldosPorTipo(empresaId, hasta, desde, ['ingreso']);
+  const costos = saldosPorTipo(empresaId, hasta, desde, ['costo']);
+  const gastos = saldosPorTipo(empresaId, hasta, desde, ['gasto']);
+  const utilidadEjercicio =
+    ingresos.reduce((s, c) => s + c.saldo, 0) - costos.reduce((s, c) => s + c.saldo, 0) - gastos.reduce((s, c) => s + c.saldo, 0);
+  filas.push({ codigo: '', nombre: 'Utilidad del ejercicio', saldoInicial: 0, movimientoPeriodo: utilidadEjercicio, saldoFinal: utilidadEjercicio });
+
+  const totales = filas.reduce(
+    (acc, f) => ({
+      saldoInicial: acc.saldoInicial + f.saldoInicial,
+      movimientoPeriodo: acc.movimientoPeriodo + f.movimientoPeriodo,
+      saldoFinal: acc.saldoFinal + f.saldoFinal,
+    }),
+    { saldoInicial: 0, movimientoPeriodo: 0, saldoFinal: 0 }
+  );
+
+  res.json({ filas, totales });
+});
+
 // Flujo de Efectivo histórico: movimientos de cuentas marcadas como efectivo,
 // clasificados según la actividad (operación/inversión/financiamiento) de la contrapartida.
 reportesRouter.get('/flujo-efectivo', (req, res) => {
@@ -368,6 +430,21 @@ reportesRouter.get('/dashboard', (req, res) => {
   const restoSuma = gastosOrdenados.slice(6).reduce((s, c) => s + c.saldo, 0);
   const gastosPorCuenta = restoSuma > 0 ? [...top, { id: -1, codigo: '', nombre: 'Otros', tipo: 'gasto', saldo: restoSuma }] : top;
 
+  // EBITDA (utilidad antes de intereses, impuestos, depreciación y amortización):
+  // como el sistema no registra el gasto de impuesto sobre la renta como un
+  // asiento contable (el ISLR se calcula aparte en el Módulo Fiscal), la
+  // "utilidadNeta" de aquí ya está antes de impuesto — no hace falta sumarlo
+  // de vuelta. Sí hay que sumar de vuelta la depreciación/amortización y los
+  // gastos financieros, identificados por el nombre de la cuenta de gasto
+  // (p.ej. "Depreciación del Ejercicio", "Gastos Financieros").
+  const depreciacionYAmortizacion = gastosAcum
+    .filter((g) => /deprecia|amortiza/i.test(g.nombre))
+    .reduce((s, c) => s + c.saldo, 0);
+  const gastosFinancieros = gastosAcum
+    .filter((g) => /financier|inter[eé]s/i.test(g.nombre))
+    .reduce((s, c) => s + c.saldo, 0);
+  const ebitda = utilidadNeta + depreciacionYAmortizacion + gastosFinancieros;
+
   const asientosRecientes = db
     .prepare(
       `SELECT a.id, a.numero, a.fecha, a.descripcion,
@@ -383,6 +460,9 @@ reportesRouter.get('/dashboard', (req, res) => {
     utilidadNeta,
     totalIngresos,
     totalGastos: totalGastos + totalCostos,
+    ebitda,
+    depreciacionYAmortizacion,
+    gastosFinancieros,
     serieMensual,
     gastosPorCuenta,
     asientosRecientes,
