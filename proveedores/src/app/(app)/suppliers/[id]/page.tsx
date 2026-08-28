@@ -8,7 +8,7 @@ import { SupplierStatusBadge } from "@/components/SupplierStatusBadge";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { BackButton } from "@/components/BackButton";
 import { DeleteSupplierButton } from "@/components/DeleteSupplierButton";
-import { DownloadPdfButton } from "@/components/DownloadPdfButton";
+import { SupplierPdfButton } from "@/components/SupplierPdfButton";
 import {
   SUPPLIER_TYPE_LABELS,
   overallRating,
@@ -45,9 +45,51 @@ export default async function SupplierDetailPage({
       <BackButton />
 
       <div className="flex items-center justify-end gap-4">
-        <DownloadPdfButton
-          targetId="supplier-detail-capture"
-          filename={`${supplier.legalName.replace(/[^\w\- ]/g, "")}.pdf`}
+        <SupplierPdfButton
+          data={{
+            legalName: supplier.legalName,
+            tradeName: supplier.tradeName,
+            taxId: supplier.taxId,
+            type: supplier.type,
+            category: supplier.category,
+            isBrandRepresentative: supplier.isBrandRepresentative,
+            representedBrand: supplier.representedBrand,
+            city: supplier.city,
+            state: supplier.state,
+            country: supplier.country,
+            address: supplier.address,
+            visitDate: supplier.visitDate,
+            contactName: supplier.contactName,
+            contactRole: supplier.contactRole,
+            phone: supplier.phone,
+            phoneExt: supplier.phoneExt,
+            whatsapp: supplier.whatsapp,
+            email: supplier.email,
+            website: supplier.website,
+            additionalContacts: Array.isArray(supplier.additionalContacts)
+              ? (supplier.additionalContacts as unknown as AdditionalContact[])
+              : [],
+            status: supplier.status,
+            qualityRating: supplier.qualityRating,
+            priceRating: supplier.priceRating,
+            deliveryRating: supplier.deliveryRating,
+            serviceRating: supplier.serviceRating,
+            currencies: supplier.currencies,
+            currencyOther: supplier.currencyOther,
+            paymentMethods: supplier.paymentMethods,
+            paymentMethodOther: supplier.paymentMethodOther,
+            paymentTerms: supplier.paymentTerms,
+            minOrder: supplier.minOrder,
+            certifications: supplier.certifications,
+            hasInvoice: supplier.hasInvoice,
+            products: supplier.products,
+            notes: supplier.notes,
+            photos: supplier.photos.map((p) => ({ id: p.id, category: p.category })),
+            registeredByName: supplier.registeredBy.name,
+            createdAt: supplier.createdAt,
+            updatedByName: supplier.updatedBy?.name ?? null,
+            updatedAt: supplier.updatedAt,
+          }}
         />
         <Link
           href={`/suppliers/${supplier.id}/print`}
@@ -57,7 +99,7 @@ export default async function SupplierDetailPage({
         </Link>
       </div>
 
-      <div id="supplier-detail-capture" className="space-y-6" style={{ background: "var(--color-paper)" }}>
+      <div className="space-y-6">
       <div>
         <div className="flex items-start justify-between gap-4">
           <div>
