@@ -133,14 +133,15 @@ export default async function DashboardPage() {
                 </div>
                 <div className="p-4 flex flex-col gap-1.5">
                   <p className="font-medium text-ink truncate">{s.legalName}</p>
-                  <p className="text-xs text-ink-soft">
-                    {s.city} · {SUPPLIER_TYPE_LABELS[s.type]}
-                  </p>
-                  <div className="flex items-center justify-between mt-1">
-                    <SupplierStatusBadge status={s.status} />
-                    <span className={`text-xs ${rating != null ? "text-accent font-medium" : "text-ink-soft"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-ink-soft truncate">{s.city}</p>
+                    <span className={`shrink-0 text-xs ${rating != null ? "text-accent font-bold" : "text-ink-soft"}`}>
                       {formatRating(rating)}
                     </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <SupplierStatusBadge status={s.status} />
+                    <span className="text-xs text-ink-soft">{SUPPLIER_TYPE_LABELS[s.type]}</span>
                   </div>
                 </div>
               </Link>

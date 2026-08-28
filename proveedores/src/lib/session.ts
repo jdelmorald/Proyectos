@@ -19,3 +19,13 @@ export async function requireAdmin() {
   if (!user.isAdmin) redirect("/suppliers");
   return user;
 }
+
+/** Administradores siempre pueden editar; el resto solo si se les otorgó el permiso. */
+export function canEditSuppliers(user: { isAdmin: boolean; canEditSuppliers: boolean }) {
+  return user.isAdmin || user.canEditSuppliers;
+}
+
+/** Administradores siempre pueden eliminar; el resto solo si se les otorgó el permiso. */
+export function canDeleteSuppliers(user: { isAdmin: boolean; canDeleteSuppliers: boolean }) {
+  return user.isAdmin || user.canDeleteSuppliers;
+}

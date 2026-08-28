@@ -57,8 +57,64 @@ export const RATING_FIELDS: { field: RatingField; label: string }[] = [
   { field: "qualityRating", label: "Calidad" },
   { field: "priceRating", label: "Precio" },
   { field: "deliveryRating", label: "Tiempo de entrega" },
-  { field: "serviceRating", label: "Atención / servicio" },
+  { field: "serviceRating", label: "Otros" },
 ];
+
+export const CURRENCY_OPTIONS = ["USD", "EUR", "BS", "COP", "USDT", "EFECTIVO", "OTRO"] as const;
+export const CURRENCY_LABELS: Record<string, string> = {
+  USD: "USD",
+  EUR: "EUR",
+  BS: "Bolívares (BS)",
+  COP: "Pesos colombianos (COP)",
+  USDT: "USDT",
+  EFECTIVO: "Efectivo",
+  OTRO: "Otra",
+};
+
+export const PAYMENT_METHOD_OPTIONS = [
+  "TRANSFERENCIA",
+  "ZELLE",
+  "BINANCE",
+  "PAGO_MOVIL",
+  "EFECTIVO",
+  "ZINLI",
+  "TARJETA",
+  "BANESCO_PANAMA",
+  "OTRO",
+] as const;
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  TRANSFERENCIA: "Transferencia",
+  ZELLE: "Zelle",
+  BINANCE: "Binance",
+  PAGO_MOVIL: "Pago móvil",
+  EFECTIVO: "Efectivo",
+  ZINLI: "Zinli",
+  TARJETA: "Tarjeta",
+  BANESCO_PANAMA: "Banesco Panamá",
+  OTRO: "Otro",
+};
+
+/** Sugerencias de rubro — el campo sigue siendo texto libre (datalist), para no limitar al usuario. */
+export const CATEGORY_SUGGESTIONS = [
+  "Transporte",
+  "Servicios",
+  "Manufactura",
+  "Fábrica",
+  "Catering",
+  "Ferretería",
+  "IT / Tecnología",
+  "Electrónica",
+  "Alimentos",
+  "Empaques",
+  "Construcción",
+  "Repuestos",
+  "Papelería",
+  "Textil",
+  "Limpieza",
+  "Mantenimiento",
+];
+
+export type AdditionalContact = { name: string; role: string; phone: string };
 
 /** Promedio de las calificaciones que estén llenas; null si ninguna lo está. */
 export function overallRating(supplier: {
@@ -81,4 +137,15 @@ export function overallRating(supplier: {
 export function formatRating(value: number | null): string {
   if (value == null) return "Sin calificar";
   return `★ ${value.toFixed(1)}`;
+}
+
+/** Fecha y hora, para dejar registro de quién hizo qué y cuándo. */
+export function formatDateTime(date: Date): string {
+  return date.toLocaleString("es", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

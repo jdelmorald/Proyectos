@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireUser, canEditSuppliers, canDeleteSuppliers } from "@/lib/session";
 import { isAllowedPhoto } from "@/lib/storage";
+import { CURRENCY_OPTIONS, PAYMENT_METHOD_OPTIONS, type AdditionalContact } from "@/lib/suppliers";
 
 type ActionResult = { error: string } | { success: true };
 
@@ -40,17 +41,25 @@ type SupplierData = {
   contactName: string | null;
   contactRole: string | null;
   phone: string | null;
+  phoneExt: string | null;
   whatsapp: string | null;
   email: string | null;
   website: string | null;
+  additionalContacts: AdditionalContact[];
   type: (typeof SUPPLIER_TYPES)[number];
   category: string | null;
   products: string | null;
+  isBrandRepresentative: boolean;
+  representedBrand: string | null;
   status: (typeof SUPPLIER_STATUSES)[number];
   qualityRating: number | null;
   priceRating: number | null;
   deliveryRating: number | null;
   serviceRating: number | null;
+  currencies: string[];
+  currencyOther: string | null;
+  paymentMethods: string[];
+  paymentMethodOther: string | null;
   paymentTerms: string | null;
   minOrder: string | null;
   hasInvoice: boolean;
@@ -72,6 +81,30 @@ function ratingValue(formData: FormData, key: string): number | null {
   const n = Number(raw);
   if (!Number.isInteger(n) || n < 1 || n > 5) return null;
   return n;
+}
+
+function multiSelect(formData: FormData, key: string, allowed: readonly string[]): string[] {
+  return formData
+    .getAll(key)
+    .map((v) => String(v))
+    .filter((v) => allowed.includes(v));
+}
+
+function parseAdditionalContacts(formData: FormData): AdditionalContact[] {
+  const raw = String(formData.get("additionalContactsJson") ?? "[]");
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((c) => ({
+        name: String(c?.name ?? "").trim(),
+        role: String(c?.role ?? "").trim(),
+        phone: String(c?.phone ?? "").trim(),
+      }))
+      .filter((c) => c.name || c.role || c.phone);
+  } catch {
+    return [];
+  }
 }
 
 function parseSupplierInput(formData: FormData): ParseResult {
@@ -107,17 +140,25 @@ function parseSupplierInput(formData: FormData): ParseResult {
       contactName: optionalText(formData, "contactName"),
       contactRole: optionalText(formData, "contactRole"),
       phone: optionalText(formData, "phone"),
+      phoneExt: optionalText(formData, "phoneExt"),
       whatsapp: optionalText(formData, "whatsapp"),
       email: optionalText(formData, "email"),
       website: optionalText(formData, "website"),
+      additionalContacts: parseAdditionalContacts(formData),
       type: type as (typeof SUPPLIER_TYPES)[number],
       category: optionalText(formData, "category"),
       products: optionalText(formData, "products"),
+      isBrandRepresentative: formData.get("isBrandRepresentative") === "on",
+      representedBrand: optionalText(formData, "representedBrand"),
       status: status as (typeof SUPPLIER_STATUSES)[number],
       qualityRating: ratingValue(formData, "qualityRating"),
       priceRating: ratingValue(formData, "priceRating"),
       deliveryRating: ratingValue(formData, "deliveryRating"),
       serviceRating: ratingValue(formData, "serviceRating"),
+      currencies: multiSelect(formData, "currencies", CURRENCY_OPTIONS),
+      currencyOther: optionalText(formData, "currencyOther"),
+      paymentMethods: multiSelect(formData, "paymentMethods", PAYMENT_METHOD_OPTIONS),
+      paymentMethodOther: optionalText(formData, "paymentMethodOther"),
       paymentTerms: optionalText(formData, "paymentTerms"),
       minOrder: optionalText(formData, "minOrder"),
       hasInvoice: formData.get("hasInvoice") === "on",
@@ -187,6 +228,9 @@ export async function updateSupplier(
   formData: FormData
 ): Promise<ActionResult> {
   const user = await requireUser();
+  if (!canEditSuppliers(user)) {
+    return { error: "No tienes permiso para editar proveedores. Pídele acceso a un administrador." };
+  }
 
   const id = String(formData.get("id") ?? "");
   const existing = await prisma.supplier.findUnique({ where: { id } });
@@ -195,7 +239,10 @@ export async function updateSupplier(
   const parsed = parseSupplierInput(formData);
   if ("error" in parsed) return { error: parsed.error };
 
-  await prisma.supplier.update({ where: { id }, data: parsed.data });
+  await prisma.supplier.update({
+    where: { id },
+    data: { ...parsed.data, updatedById: user.id },
+  });
 
   const photoError = await attachPhotos(formData, id, user.id);
   if (photoError) return { error: photoError };
@@ -207,11 +254,24 @@ export async function updateSupplier(
 
 /** Usada directamente como `action` de un <form>, sin useActionState. */
 export async function deletePhoto(formData: FormData): Promise<void> {
-  await requireUser();
+  const user = await requireUser();
+  if (!canEditSuppliers(user)) return;
 
   const photoId = String(formData.get("photoId") ?? "");
   const photo = await prisma.photo.delete({ where: { id: photoId } }).catch(() => null);
   if (!photo) return;
 
   revalidatePath(`/suppliers/${photo.supplierId}`);
+}
+
+/** Borra el proveedor y sus fotos. Requiere el permiso de eliminación. Acción irreversible. */
+export async function deleteSupplier(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  if (!canDeleteSuppliers(user)) return;
+
+  const id = String(formData.get("id") ?? "");
+  await prisma.supplier.delete({ where: { id } }).catch(() => null);
+
+  revalidatePath("/suppliers");
+  redirect("/suppliers");
 }

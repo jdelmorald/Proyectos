@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { createSupplier, updateSupplier } from "@/lib/actions/suppliers";
 import {
   SUPPLIER_TYPE_LABELS,
@@ -8,6 +8,12 @@ import {
   PHOTO_CATEGORY_LABELS,
   RATING_FIELDS,
   RATING_LABELS,
+  CURRENCY_OPTIONS,
+  CURRENCY_LABELS,
+  PAYMENT_METHOD_OPTIONS,
+  PAYMENT_METHOD_LABELS,
+  CATEGORY_SUGGESTIONS,
+  type AdditionalContact,
 } from "@/lib/suppliers";
 
 const initialState = null;
@@ -15,6 +21,8 @@ const initialState = null;
 const inputClass = "field-input w-full rounded-[13px] px-3.5 py-3 text-base sm:text-sm";
 const labelClass = "block text-[.64rem] font-bold uppercase tracking-[.1em] text-ink-soft mb-2";
 const sectionTitleClass = "text-[.64rem] font-bold uppercase tracking-[.1em] text-accent";
+const pillLabelClass =
+  "inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border border-line cursor-pointer has-[:checked]:bg-accent-soft has-[:checked]:border-accent has-[:checked]:text-accent-deep transition-colors";
 
 export type SupplierFormValues = {
   id: string;
@@ -28,17 +36,25 @@ export type SupplierFormValues = {
   contactName: string | null;
   contactRole: string | null;
   phone: string | null;
+  phoneExt: string | null;
   whatsapp: string | null;
   email: string | null;
   website: string | null;
+  additionalContacts: AdditionalContact[];
   type: string;
   category: string | null;
   products: string | null;
+  isBrandRepresentative: boolean;
+  representedBrand: string | null;
   status: string;
   qualityRating: number | null;
   priceRating: number | null;
   deliveryRating: number | null;
   serviceRating: number | null;
+  currencies: string[];
+  currencyOther: string | null;
+  paymentMethods: string[];
+  paymentMethodOther: string | null;
   paymentTerms: string | null;
   minOrder: string | null;
   hasInvoice: boolean;
@@ -52,12 +68,79 @@ function toDateInputValue(date: Date | null): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
+function AdditionalContactsField({ initial }: { initial: AdditionalContact[] }) {
+  const [contacts, setContacts] = useState<AdditionalContact[]>(initial);
+
+  function update(i: number, field: keyof AdditionalContact, value: string) {
+    setContacts((prev) => prev.map((c, idx) => (idx === i ? { ...c, [field]: value } : c)));
+  }
+
+  return (
+    <div className="space-y-2.5">
+      <input type="hidden" name="additionalContactsJson" value={JSON.stringify(contacts)} />
+      {contacts.map((c, i) => (
+        <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
+          <input
+            className={inputClass}
+            placeholder="Nombre"
+            value={c.name}
+            onChange={(e) => update(i, "name", e.target.value)}
+          />
+          <input
+            className={inputClass}
+            placeholder="Cargo"
+            value={c.role}
+            onChange={(e) => update(i, "role", e.target.value)}
+          />
+          <input
+            className={inputClass}
+            placeholder="Teléfono"
+            type="tel"
+            inputMode="tel"
+            value={c.phone}
+            onChange={(e) => update(i, "phone", e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setContacts((prev) => prev.filter((_, idx) => idx !== i))}
+            className="text-red-700 text-xs font-medium px-2 py-1 justify-self-start sm:justify-self-center"
+          >
+            Quitar
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => setContacts((prev) => [...prev, { name: "", role: "", phone: "" }])}
+        className="text-[.78rem] font-bold text-accent"
+      >
+        + Agregar otro contacto
+      </button>
+    </div>
+  );
+}
+
+export function SupplierForm({
+  supplier,
+  onSaved,
+  onCancel,
+}: {
+  supplier?: SupplierFormValues;
+  /** Se llama cuando la edición se guardó con éxito (para volver a modo lectura). */
+  onSaved?: () => void;
+  /** Se llama al cancelar la edición sin guardar. */
+  onCancel?: () => void;
+}) {
   const isEdit = Boolean(supplier);
   const [state, formAction, pending] = useActionState(
     isEdit ? updateSupplier : createSupplier,
     initialState
   );
+
+  useEffect(() => {
+    if (state && "success" in state) onSaved?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form
@@ -131,9 +214,38 @@ export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
             <input
               id="category"
               name="category"
+              list="category-suggestions"
               defaultValue={supplier?.category ?? ""}
               className={inputClass}
-              placeholder="Materia prima, empaques, transporte..."
+              placeholder="Transporte, IT, ferretería..."
+            />
+            <datalist id="category-suggestions">
+              {CATEGORY_SUGGESTIONS.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3.5 items-start pt-1">
+          <label className="flex items-center gap-2.5 text-sm text-ink py-1">
+            <input
+              type="checkbox"
+              name="isBrandRepresentative"
+              defaultChecked={supplier?.isBrandRepresentative ?? false}
+              className="w-4 h-4 rounded border-line accent-accent"
+            />
+            Es representante / distribuidor exclusivo de una marca
+          </label>
+          <div>
+            <label htmlFor="representedBrand" className={labelClass}>
+              ¿Cuál marca?
+            </label>
+            <input
+              id="representedBrand"
+              name="representedBrand"
+              defaultValue={supplier?.representedBrand ?? ""}
+              className={inputClass}
+              placeholder="Ej. Canon, Bosch..."
             />
           </div>
         </div>
@@ -220,18 +332,32 @@ export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
               placeholder="Dueño, ventas, gerente..."
             />
           </div>
-          <div>
-            <label htmlFor="phone" className={labelClass}>
-              Teléfono
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              defaultValue={supplier?.phone ?? ""}
-              className={inputClass}
-            />
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <div>
+              <label htmlFor="phone" className={labelClass}>
+                Teléfono
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                defaultValue={supplier?.phone ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div className="w-24">
+              <label htmlFor="phoneExt" className={labelClass}>
+                Ext.
+              </label>
+              <input
+                id="phoneExt"
+                name="phoneExt"
+                inputMode="numeric"
+                defaultValue={supplier?.phoneExt ?? ""}
+                className={inputClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="whatsapp" className={labelClass}>
@@ -270,6 +396,11 @@ export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
               placeholder="instagram.com/..."
             />
           </div>
+        </div>
+
+        <div className="pt-1">
+          <label className={labelClass}>Otros contactos (opcional)</label>
+          <AdditionalContactsField initial={supplier?.additionalContacts ?? []} />
         </div>
       </div>
 
@@ -365,6 +496,55 @@ export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
             </div>
           ))}
         </div>
+
+        <div>
+          <label className={labelClass}>Moneda(s) de cobro</label>
+          <div className="flex flex-wrap gap-2">
+            {CURRENCY_OPTIONS.map((opt) => (
+              <label key={opt} className={pillLabelClass}>
+                <input
+                  type="checkbox"
+                  name="currencies"
+                  value={opt}
+                  defaultChecked={supplier?.currencies?.includes(opt) ?? false}
+                  className="accent-accent"
+                />
+                {CURRENCY_LABELS[opt]}
+              </label>
+            ))}
+          </div>
+          <input
+            name="currencyOther"
+            defaultValue={supplier?.currencyOther ?? ""}
+            className={`${inputClass} mt-2`}
+            placeholder="Si marcaste 'Otra', especifica cuál"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>Métodos de pago</label>
+          <div className="flex flex-wrap gap-2">
+            {PAYMENT_METHOD_OPTIONS.map((opt) => (
+              <label key={opt} className={pillLabelClass}>
+                <input
+                  type="checkbox"
+                  name="paymentMethods"
+                  value={opt}
+                  defaultChecked={supplier?.paymentMethods?.includes(opt) ?? false}
+                  className="accent-accent"
+                />
+                {PAYMENT_METHOD_LABELS[opt]}
+              </label>
+            ))}
+          </div>
+          <input
+            name="paymentMethodOther"
+            defaultValue={supplier?.paymentMethodOther ?? ""}
+            className={`${inputClass} mt-2`}
+            placeholder="Si marcaste 'Otro', especifica cuál"
+          />
+        </div>
+
         <div className="grid sm:grid-cols-2 gap-3.5">
           <div>
             <label htmlFor="paymentTerms" className={labelClass}>
@@ -423,19 +603,30 @@ export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
 
       {state && "error" in state && <p className="text-sm text-red-700">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full sm:w-auto rounded-[13px] bg-accent text-white text-sm font-bold px-6 py-3 shadow-[0_14px_28px_-10px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 transition-all"
-      >
-        {pending
-          ? isEdit
-            ? "Guardando..."
-            : "Registrando..."
-          : isEdit
-            ? "Guardar cambios"
-            : "Registrar proveedor"}
-      </button>
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          type="submit"
+          disabled={pending}
+          className="w-full sm:w-auto rounded-[13px] bg-accent text-white text-sm font-bold px-6 py-3 shadow-[0_14px_28px_-10px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 transition-all"
+        >
+          {pending
+            ? isEdit
+              ? "Guardando..."
+              : "Registrando..."
+            : isEdit
+              ? "Guardar cambios"
+              : "Registrar proveedor"}
+        </button>
+        {isEdit && (
+          <button
+            type="button"
+            onClick={() => onCancel?.()}
+            className="text-sm font-medium text-ink-soft hover:text-ink"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 }

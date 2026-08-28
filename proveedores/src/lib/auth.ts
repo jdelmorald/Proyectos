@@ -32,6 +32,8 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
+          canEditSuppliers: user.canEditSuppliers,
+          canDeleteSuppliers: user.canDeleteSuppliers,
         };
       },
     }),
@@ -41,6 +43,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.isAdmin = user.isAdmin;
+        token.canEditSuppliers = user.canEditSuppliers;
+        token.canDeleteSuppliers = user.canDeleteSuppliers;
       }
       return token;
     },
@@ -48,6 +52,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.isAdmin = token.isAdmin as boolean;
+        session.user.canEditSuppliers = token.canEditSuppliers as boolean;
+        session.user.canDeleteSuppliers = token.canDeleteSuppliers as boolean;
       }
       return session;
     },

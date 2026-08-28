@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { CreateUserForm } from "@/components/CreateUserForm";
 import { ToggleUserButton } from "@/components/ToggleUserButton";
+import { ToggleCanEditButton } from "@/components/ToggleCanEditButton";
+import { ToggleCanDeleteButton } from "@/components/ToggleCanDeleteButton";
 
 export default async function UsuariosPage() {
   const currentUser = await requireAdmin();
@@ -31,7 +33,21 @@ export default async function UsuariosPage() {
                 <td className="px-5 py-3.5 font-medium text-ink">{u.name}</td>
                 <td className="px-5 py-3.5 text-ink-soft">{u.email}</td>
                 <td className="px-5 py-3.5 text-ink-soft">
-                  {u.isAdmin ? "Administrador" : "Colaborador"}
+                  <div>{u.isAdmin ? "Administrador" : "Colaborador"}</div>
+                  {!u.isAdmin && (
+                    <div className="text-xs mt-0.5 space-y-0.5">
+                      <div>
+                        {u.canEditSuppliers ? (
+                          <span className="text-emerald-800">Puede editar proveedores</span>
+                        ) : (
+                          <span className="text-ink-soft/70">Solo lectura e impresión</span>
+                        )}
+                      </div>
+                      {u.canDeleteSuppliers && (
+                        <div className="text-red-700">Puede eliminar proveedores</div>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="px-5 py-3.5">
                   <span
@@ -45,7 +61,13 @@ export default async function UsuariosPage() {
                     {u.active ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 space-y-1.5">
+                  {!u.isAdmin && (
+                    <>
+                      <ToggleCanEditButton userId={u.id} canEditSuppliers={u.canEditSuppliers} />
+                      <ToggleCanDeleteButton userId={u.id} canDeleteSuppliers={u.canDeleteSuppliers} />
+                    </>
+                  )}
                   {u.id !== currentUser.id && <ToggleUserButton userId={u.id} active={u.active} />}
                 </td>
               </tr>
