@@ -1,0 +1,59 @@
+"use client";
+
+import { useActionState } from "react";
+import { createUser } from "@/lib/actions/admin";
+
+const initialState = null;
+
+const inputClass =
+  "w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent";
+const labelClass = "block text-xs uppercase tracking-wide text-ink-soft mb-1.5";
+
+export function CreateUserForm() {
+  const [state, formAction, pending] = useActionState(createUser, initialState);
+
+  return (
+    <form action={formAction} className="bg-surface border border-line rounded-2xl p-5 space-y-3">
+      <h2 className="text-xs uppercase tracking-wide text-ink-soft">Crear cuenta</h2>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="name" className={labelClass}>
+            Nombre
+          </label>
+          <input id="name" name="name" required className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="email" className={labelClass}>
+            Correo
+          </label>
+          <input id="email" name="email" type="email" required className={inputClass} />
+        </div>
+        <div className="col-span-2">
+          <label htmlFor="password" className={labelClass}>
+            Contraseña temporal
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="text"
+            required
+            minLength={8}
+            className={inputClass}
+          />
+        </div>
+      </div>
+      <label className="flex items-center gap-2.5 text-sm text-ink py-1">
+        <input type="checkbox" name="isAdmin" className="w-4 h-4 rounded border-line accent-accent" />
+        Puede administrar usuarios
+      </label>
+      {state && "error" in state && <p className="text-sm text-red-700">{state.error}</p>}
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg bg-ink text-white text-sm font-medium px-4 py-2 hover:bg-ink/90 disabled:opacity-50 transition-colors"
+      >
+        {pending ? "Creando..." : "Crear cuenta"}
+      </button>
+    </form>
+  );
+}
