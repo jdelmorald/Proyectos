@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Download } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { SupplierStatusBadge } from "@/components/SupplierStatusBadge";
@@ -14,16 +15,20 @@ const STATUS_FILTERS = [
   { value: "RECHAZADO", label: "Rechazados" },
 ] as const;
 
+const selectClass = "field-input w-full rounded-[13px] px-3.5 py-2.5 text-sm";
+
 export default async function SuppliersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; city?: string; category?: string; minRating?: string }>;
 }) {
-  await requireUser();
-  const { q, status } = await searchParams;
+  const user = await requireUser();
+  const { q, status, city, category, minRating } = await searchParams;
 
   const where: Prisma.SupplierWhereInput = {
     ...(status ? { status: status as never } : {}),
+    ...(city ? { city } : {}),
+    ...(category ? { category } : {}),
     ...(q
       ? {
           OR: [
@@ -36,11 +41,29 @@ export default async function SuppliersPage({
       : {}),
   };
 
-  const suppliers = await prisma.supplier.findMany({
-    where,
-    orderBy: { updatedAt: "desc" },
-    include: { photos: { take: 1 } },
-  });
+  const [suppliersRaw, cityRows, categoryRows] = await Promise.all([
+    prisma.supplier.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      include: { photos: { take: 1 } },
+    }),
+    prisma.supplier.findMany({
+      distinct: ["city"],
+      select: { city: true },
+      orderBy: { city: "asc" },
+    }),
+    prisma.supplier.findMany({
+      distinct: ["category"],
+      select: { category: true },
+      where: { category: { not: null } },
+      orderBy: { category: "asc" },
+    }),
+  ]);
+
+  const minRatingNum = minRating ? Number(minRating) : null;
+  const suppliers = minRatingNum
+    ? suppliersRaw.filter((s) => (overallRating(s) ?? 0) >= minRatingNum)
+    : suppliersRaw;
 
   return (
     <div>
@@ -51,15 +74,25 @@ export default async function SuppliersPage({
             {suppliers.length} proveedor(es) registrado(s)
           </p>
         </div>
-        <Link
-          href="/suppliers/new"
-          className="rounded-[13px] bg-accent text-white text-sm font-bold px-4 py-2.5 shadow-[0_10px_20px_-8px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 transition-all text-center"
-        >
-          + Nuevo proveedor
-        </Link>
+        <div className="flex gap-2">
+          {user.isAdmin && (
+            <a
+              href="/api/suppliers/export"
+              className="inline-flex items-center gap-1.5 rounded-[13px] glass-card text-ink text-sm font-medium px-4 py-2.5 hover:border-accent/30 transition-colors"
+            >
+              <Download size={15} /> Exportar
+            </a>
+          )}
+          <Link
+            href="/suppliers/new"
+            className="rounded-[13px] bg-accent text-white text-sm font-bold px-4 py-2.5 shadow-[0_10px_20px_-8px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 transition-all text-center"
+          >
+            + Nuevo proveedor
+          </Link>
+        </div>
       </div>
 
-      <form method="get" className="mb-4">
+      <form method="get" className="space-y-3 mb-5">
         <input
           type="search"
           name="q"
@@ -68,6 +101,37 @@ export default async function SuppliersPage({
           className="field-input w-full rounded-[13px] px-3.5 py-3 text-base sm:text-sm"
         />
         {status && <input type="hidden" name="status" value={status} />}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <select name="city" defaultValue={city ?? ""} className={selectClass}>
+            <option value="">Todas las ciudades</option>
+            {cityRows.map((c) => (
+              <option key={c.city} value={c.city}>
+                {c.city}
+              </option>
+            ))}
+          </select>
+          <select name="category" defaultValue={category ?? ""} className={selectClass}>
+            <option value="">Todos los rubros</option>
+            {categoryRows.map((c) => (
+              <option key={c.category} value={c.category ?? ""}>
+                {c.category}
+              </option>
+            ))}
+          </select>
+          <select name="minRating" defaultValue={minRating ?? ""} className={selectClass}>
+            <option value="">Cualquier calificación</option>
+            <option value="4">★ 4 o más</option>
+            <option value="3">★ 3 o más</option>
+            <option value="2">★ 2 o más</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          className="text-sm font-bold text-accent hover:underline"
+        >
+          Filtrar
+        </button>
       </form>
 
       <div className="flex gap-1.5 mb-5 overflow-x-auto">
@@ -75,6 +139,9 @@ export default async function SuppliersPage({
           const params = new URLSearchParams();
           if (f.value) params.set("status", f.value);
           if (q) params.set("q", q);
+          if (city) params.set("city", city);
+          if (category) params.set("category", category);
+          if (minRating) params.set("minRating", minRating);
           const href = params.toString() ? `/suppliers?${params.toString()}` : "/suppliers";
           return (
             <Link
@@ -94,7 +161,7 @@ export default async function SuppliersPage({
 
       {suppliers.length === 0 ? (
         <div className="glass-card rounded-[20px] p-10 text-center">
-          <p className="text-sm text-ink-soft">No hay proveedores registrados todavía.</p>
+          <p className="text-sm text-ink-soft">No hay proveedores que coincidan con estos filtros.</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -129,16 +196,24 @@ export default async function SuppliersPage({
                       <SupplierStatusBadge status={s.status} />
                     </span>
                   </div>
-                  <p className="text-sm text-ink-soft">
-                    {s.city}
-                    {s.state ? `, ${s.state}` : ""} · {SUPPLIER_TYPE_LABELS[s.type]}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-ink-soft mt-1">
-                    <span>{s.phone || s.whatsapp || s.contactName || "Sin contacto registrado"}</span>
-                    <span className={rating != null ? "text-accent font-medium" : ""}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-ink-soft truncate">
+                      {s.city}
+                      {s.state ? `, ${s.state}` : ""}
+                    </p>
+                    <span
+                      className={`shrink-0 text-sm ${rating != null ? "text-accent font-bold" : "text-ink-soft"}`}
+                    >
                       {formatRating(rating)}
                     </span>
                   </div>
+                  <p className="text-xs text-ink-soft">
+                    {SUPPLIER_TYPE_LABELS[s.type]}
+                    {s.category ? ` · ${s.category}` : ""}
+                  </p>
+                  <p className="text-xs text-ink-soft/80 truncate">
+                    {s.phone || s.whatsapp || s.contactName || "Sin contacto registrado"}
+                  </p>
                 </div>
               </Link>
             );

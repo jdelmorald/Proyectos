@@ -48,7 +48,7 @@ export function Sidebar({ name, isAdmin }: SidebarProps) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex glass-panel thin-scrollbar w-[264px] shrink-0 md:sticky md:top-[18px] rounded-[24px] px-[1.1rem] py-[1.3rem] flex-col gap-[1.6rem] overflow-y-auto max-h-[calc(100vh-36px)] z-[2]">
+      <aside className="no-print hidden md:flex glass-panel thin-scrollbar w-[264px] shrink-0 md:sticky md:top-[18px] rounded-[24px] px-[1.1rem] py-[1.3rem] flex-col gap-[1.6rem] overflow-y-auto max-h-[calc(100vh-36px)] z-[2]">
         <div
           className="flex items-center gap-[.6rem] pb-[1.1rem]"
           style={{ borderBottom: "1px solid var(--color-line)" }}
@@ -121,7 +121,7 @@ export function Sidebar({ name, isAdmin }: SidebarProps) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="md:hidden glass-panel sticky top-2 mx-2 mt-2 rounded-[20px] z-[2]">
+      <header className="no-print md:hidden glass-panel sticky top-2 mx-2 mt-2 rounded-[20px] z-[2]">
         <div className="flex items-center justify-between px-4 h-14">
           <Link href="/dashboard" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -7,7 +7,7 @@ type Photo = {
   originalName: string;
 };
 
-export function PhotoGallery({ photos }: { photos: Photo[] }) {
+export function PhotoGallery({ photos, canEdit = true }: { photos: Photo[]; canEdit?: boolean }) {
   if (photos.length === 0) {
     return (
       <p className="text-sm text-ink-soft">
@@ -30,16 +30,18 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
           <span className="absolute bottom-0 inset-x-0 bg-ink/70 text-white text-[10px] px-2 py-1 truncate">
             {PHOTO_CATEGORY_LABELS[photo.category] ?? photo.category}
           </span>
-          <form action={deletePhoto} className="absolute top-1.5 right-1.5">
-            <input type="hidden" name="photoId" value={photo.id} />
-            <button
-              type="submit"
-              title="Eliminar foto"
-              className="w-6 h-6 rounded-full bg-ink/70 text-white text-xs leading-none hover:bg-red-700 transition-colors flex items-center justify-center"
-            >
-              ×
-            </button>
-          </form>
+          {canEdit && (
+            <form action={deletePhoto} className="absolute top-1.5 right-1.5">
+              <input type="hidden" name="photoId" value={photo.id} />
+              <button
+                type="submit"
+                title="Eliminar foto"
+                className="w-6 h-6 rounded-full bg-ink/70 text-white text-xs leading-none hover:bg-red-700 transition-colors flex items-center justify-center"
+              >
+                ×
+              </button>
+            </form>
+          )}
         </div>
       ))}
     </div>

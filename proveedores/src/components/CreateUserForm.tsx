@@ -45,6 +45,22 @@ export function CreateUserForm() {
         <input type="checkbox" name="isAdmin" className="w-4 h-4 rounded border-line accent-accent" />
         Puede administrar usuarios
       </label>
+      <label className="flex items-center gap-2.5 text-sm text-ink py-1">
+        <input
+          type="checkbox"
+          name="canEditSuppliers"
+          className="w-4 h-4 rounded border-line accent-accent"
+        />
+        Puede editar fichas de proveedores ya registradas
+      </label>
+      <label className="flex items-center gap-2.5 text-sm text-ink py-1">
+        <input
+          type="checkbox"
+          name="canDeleteSuppliers"
+          className="w-4 h-4 rounded border-line accent-accent"
+        />
+        Puede eliminar proveedores
+      </label>
       {state && "error" in state && <p className="text-sm text-red-700">{state.error}</p>}
       <button
         type="submit"
