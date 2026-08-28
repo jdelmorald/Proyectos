@@ -8,6 +8,7 @@ import { SupplierStatusBadge } from "@/components/SupplierStatusBadge";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { BackButton } from "@/components/BackButton";
 import { DeleteSupplierButton } from "@/components/DeleteSupplierButton";
+import { DownloadPdfButton } from "@/components/DownloadPdfButton";
 import {
   SUPPLIER_TYPE_LABELS,
   overallRating,
@@ -43,6 +44,20 @@ export default async function SupplierDetailPage({
     <div className="max-w-2xl space-y-6">
       <BackButton />
 
+      <div className="flex items-center justify-end gap-4">
+        <DownloadPdfButton
+          targetId="supplier-detail-capture"
+          filename={`${supplier.legalName.replace(/[^\w\- ]/g, "")}.pdf`}
+        />
+        <Link
+          href={`/suppliers/${supplier.id}/print`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-accent transition-colors"
+        >
+          <Printer size={14} /> Imprimir
+        </Link>
+      </div>
+
+      <div id="supplier-detail-capture" className="space-y-6" style={{ background: "var(--color-paper)" }}>
       <div>
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -63,20 +78,12 @@ export default async function SupplierDetailPage({
           </div>
           <SupplierStatusBadge status={supplier.status} />
         </div>
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-sm text-ink-soft">
-            Calificación general:{" "}
-            <span className={rating != null ? "text-accent font-medium" : ""}>
-              {formatRating(rating)}
-            </span>
-          </p>
-          <Link
-            href={`/suppliers/${supplier.id}/print`}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-accent transition-colors"
-          >
-            <Printer size={14} /> Imprimir / PDF
-          </Link>
-        </div>
+        <p className="text-sm text-ink-soft mt-2">
+          Calificación general:{" "}
+          <span className={rating != null ? "text-accent font-medium" : ""}>
+            {formatRating(rating)}
+          </span>
+        </p>
       </div>
 
       <div className="glass-card rounded-[20px] p-5 sm:p-6 space-y-3.5">
@@ -127,6 +134,7 @@ export default async function SupplierDetailPage({
           visitDate: supplier.visitDate,
         }}
       />
+      </div>
 
       {canDelete && (
         <div className="flex justify-end">
