@@ -12,10 +12,9 @@ import {
 
 const initialState = null;
 
-const inputClass =
-  "w-full rounded-lg border border-line bg-paper px-3.5 py-3 text-base sm:text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent";
-const labelClass = "block text-xs uppercase tracking-wide text-ink-soft mb-1.5";
-const sectionTitleClass = "text-xs uppercase tracking-wide text-accent font-medium";
+const inputClass = "field-input w-full rounded-[13px] px-3.5 py-3 text-base sm:text-sm";
+const labelClass = "block text-[.64rem] font-bold uppercase tracking-[.1em] text-ink-soft mb-2";
+const sectionTitleClass = "text-[.64rem] font-bold uppercase tracking-[.1em] text-accent";
 
 export type SupplierFormValues = {
   id: string;
@@ -71,7 +70,7 @@ export function SupplierForm({
     <form
       action={formAction}
       encType="multipart/form-data"
-      className="bg-surface border border-line rounded-2xl p-5 sm:p-6 space-y-7"
+      className="glass-card rounded-[20px] p-5 sm:p-6 space-y-7"
     >
       {isEdit && <input type="hidden" name="id" value={supplier!.id} />}
 
@@ -435,7 +434,7 @@ export function SupplierForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-full sm:w-auto rounded-lg bg-ink text-white text-sm font-medium px-6 py-3 hover:bg-ink/90 disabled:opacity-50 transition-colors"
+        className="w-full sm:w-auto rounded-[13px] bg-accent text-white text-sm font-bold px-6 py-3 shadow-[0_14px_28px_-10px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 transition-all"
       >
         {pending
           ? isEdit

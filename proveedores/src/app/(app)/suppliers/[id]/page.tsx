@@ -36,7 +36,7 @@ export default async function SupplierDetailPage({
       <div>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl text-ink leading-tight">{supplier.legalName}</h1>
+            <h1 className="font-display font-bold text-2xl text-ink leading-tight">{supplier.legalName}</h1>
             <p className="text-sm text-ink-soft mt-1">
               {SUPPLIER_TYPE_LABELS[supplier.type]} · {supplier.city}
               {supplier.state ? `, ${supplier.state}` : ""} · Registrado por{" "}

@@ -46,14 +46,14 @@ export default async function SuppliersPage({
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-2xl text-ink">Proveedores</h1>
+          <h1 className="font-display font-bold text-2xl text-ink">Proveedores</h1>
           <p className="text-sm text-ink-soft mt-1">
             {suppliers.length} proveedor(es) registrado(s)
           </p>
         </div>
         <Link
           href="/suppliers/new"
-          className="rounded-lg bg-ink text-white text-sm font-medium px-4 py-2.5 hover:bg-ink/90 transition-colors text-center"
+          className="rounded-[13px] bg-accent text-white text-sm font-bold px-4 py-2.5 shadow-[0_10px_20px_-8px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 transition-all text-center"
         >
           + Nuevo proveedor
         </Link>
@@ -65,7 +65,7 @@ export default async function SuppliersPage({
           name="q"
           defaultValue={q ?? ""}
           placeholder="Buscar por nombre, ciudad o rubro..."
-          className="w-full rounded-lg border border-line bg-surface px-3.5 py-3 text-base sm:text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+          className="field-input w-full rounded-[13px] px-3.5 py-3 text-base sm:text-sm"
         />
         {status && <input type="hidden" name="status" value={status} />}
       </form>
@@ -82,8 +82,8 @@ export default async function SuppliersPage({
               href={href}
               className={`whitespace-nowrap text-sm px-3 py-1.5 rounded-full border transition-colors ${
                 (status ?? "") === f.value
-                  ? "bg-ink text-white border-ink"
-                  : "bg-surface text-ink-soft border-line hover:border-ink/30"
+                  ? "bg-accent text-white border-accent"
+                  : "glass-card text-ink-soft hover:border-accent/30"
               }`}
             >
               {f.label}
@@ -93,7 +93,7 @@ export default async function SuppliersPage({
       </div>
 
       {suppliers.length === 0 ? (
-        <div className="bg-surface border border-line rounded-2xl p-10 text-center">
+        <div className="glass-card rounded-[20px] p-10 text-center">
           <p className="text-sm text-ink-soft">No hay proveedores registrados todavía.</p>
         </div>
       ) : (
@@ -105,7 +105,7 @@ export default async function SuppliersPage({
               <Link
                 key={s.id}
                 href={`/suppliers/${s.id}`}
-                className="bg-surface border border-line rounded-2xl overflow-hidden hover:border-accent/50 transition-colors flex flex-col"
+                className="glass-card rounded-[20px] overflow-hidden hover:border-accent/50 transition-colors flex flex-col"
               >
                 <div className="aspect-video bg-paper flex items-center justify-center overflow-hidden">
                   {cover ? (

@@ -5,16 +5,15 @@ import { createUser } from "@/lib/actions/admin";
 
 const initialState = null;
 
-const inputClass =
-  "w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent";
-const labelClass = "block text-xs uppercase tracking-wide text-ink-soft mb-1.5";
+const inputClass = "field-input w-full rounded-[13px] px-3.5 py-2.5 text-sm";
+const labelClass = "block text-[.64rem] font-bold uppercase tracking-[.1em] text-ink-soft mb-2";
 
 export function CreateUserForm() {
   const [state, formAction, pending] = useActionState(createUser, initialState);
 
   return (
-    <form action={formAction} className="bg-surface border border-line rounded-2xl p-5 space-y-3">
-      <h2 className="text-xs uppercase tracking-wide text-ink-soft">Crear cuenta</h2>
+    <form action={formAction} className="glass-card rounded-[20px] p-5 space-y-3">
+      <h2 className="text-[.64rem] font-bold uppercase tracking-[.1em] text-ink-soft">Crear cuenta</h2>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="name" className={labelClass}>
@@ -50,7 +49,7 @@ export function CreateUserForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-ink text-white text-sm font-medium px-4 py-2 hover:bg-ink/90 disabled:opacity-50 transition-colors"
+        className="rounded-[13px] bg-accent text-white text-sm font-bold px-4 py-2 shadow-[0_10px_20px_-8px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all"
       >
         {pending ? "Creando..." : "Crear cuenta"}
       </button>

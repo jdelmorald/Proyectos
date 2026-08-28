@@ -3,6 +3,8 @@
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BrandMark } from "@/components/BrandMark";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 function LoginForm() {
   const router = useRouter();
@@ -37,88 +39,88 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-2">
-      <div className="hidden md:flex md:flex-col md:justify-between bg-ink text-white p-12 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.07] pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, white 0, transparent 45%), radial-gradient(circle at 80% 70%, white 0, transparent 40%)",
-          }}
-        />
-        <p className="font-display text-3xl relative">Proveedores</p>
-        <div className="relative">
-          <p className="font-display text-4xl leading-tight max-w-md">
-            Cada visita, un proveedor más identificado, calificado y listo
-            para contactar.
-          </p>
-          <p className="text-white/50 text-sm mt-6 max-w-sm">
-            Registra datos, fotos del local y de los productos desde el
-            celular en la calle, y revísalos después desde la PC.
-          </p>
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 overflow-hidden">
+      <AnimatedBackground />
+
+      <div className="glass-panel panel-in relative z-[2] w-full max-w-[462px] rounded-[26px] px-8 sm:px-10 pt-11 pb-10">
+        <div className="flex items-center gap-[1.1rem] mb-[1.9rem]">
+          <BrandMark size="md" />
         </div>
-        <p className="text-white/30 text-xs relative">Sistema interno de proveedores</p>
-      </div>
 
-      <div className="flex items-center justify-center px-6 py-16 bg-paper">
-        <div className="w-full max-w-sm">
-          <div className="mb-10 md:hidden text-center">
-            <h1 className="font-display text-3xl text-ink">Proveedores</h1>
-          </div>
-          <h2 className="font-display text-2xl text-ink mb-1">Ingresar</h2>
-          <p className="text-sm text-ink-soft mb-8">Usa la cuenta que te asignaron.</p>
+        <h1
+          className="font-display font-extrabold text-2xl mb-[.35rem]"
+          style={{ color: "var(--color-ink)", letterSpacing: "-.015em" }}
+        >
+          Acceso al sistema
+        </h1>
+        <p className="text-sm mb-7 leading-relaxed" style={{ color: "var(--color-ink-soft)" }}>
+          Proveedores levantados en campo, con fotos, contacto y calificación.
+        </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-xs uppercase tracking-wide text-ink-soft mb-1.5"
-              >
-                Correo
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-line bg-surface px-3.5 py-3 text-base sm:text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
-                placeholder="tucorreo@empresa.com"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-xs uppercase tracking-wide text-ink-soft mb-1.5"
-              >
-                Contraseña
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-line bg-surface px-3.5 py-3 text-base sm:text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {error && <p className="text-sm text-red-700">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-ink text-white text-sm font-medium py-3 hover:bg-ink/90 disabled:opacity-50 transition-colors"
+        <form onSubmit={handleSubmit}>
+          <div className="mb-[1.15rem]">
+            <label
+              htmlFor="email"
+              className="block text-[.64rem] font-bold uppercase mb-2"
+              style={{ color: "var(--color-ink-soft)", letterSpacing: ".12em" }}
             >
-              {loading ? "Ingresando..." : "Ingresar"}
-            </button>
-          </form>
+              Correo
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@sumivensa.com"
+              className="field-input w-full rounded-[13px] py-[.9rem] px-4 text-base sm:text-sm"
+            />
+          </div>
 
-          <p className="text-center text-xs text-ink-soft/70 mt-8">
-            ¿No tienes acceso? Solicítalo a quien administra el sistema.
-          </p>
+          <div className="mb-[1.15rem]">
+            <label
+              htmlFor="password"
+              className="block text-[.64rem] font-bold uppercase mb-2"
+              style={{ color: "var(--color-ink-soft)", letterSpacing: ".12em" }}
+            >
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="field-input w-full rounded-[13px] py-[.9rem] px-4 text-base sm:text-sm"
+            />
+          </div>
+
+          {error && (
+            <div
+              className="text-sm rounded-lg px-3 py-2 mb-4"
+              style={{
+                color: "var(--color-accent-deep)",
+                background: "var(--color-accent-soft)",
+                border: "1px solid var(--color-accent-soft)",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 text-white font-bold text-sm py-[.95rem] rounded-[13px] mt-1 transition-transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60"
+            style={{ background: "var(--color-accent)", boxShadow: "0 14px 28px -10px rgba(214,41,58,0.55)" }}
+          >
+            {loading ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+
+        <div className="text-center text-[.74rem] mt-[1.4rem]" style={{ color: "var(--color-ink-soft)" }}>
+          ¿Olvidaste tu contraseña? Contacta a quien administra el sistema.
         </div>
       </div>
     </div>

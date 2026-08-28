@@ -34,32 +34,32 @@ export default async function DashboardPage() {
   return (
     <div>
       <p className="text-sm text-ink-soft mb-1">Hola, {(user.name ?? "").split(" ")[0]}</p>
-      <h1 className="font-display text-2xl text-ink mb-8">Panel de proveedores</h1>
+      <h1 className="font-display font-bold text-2xl text-ink mb-8">Panel de proveedores</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-8">
-        <div className="bg-surface border border-line rounded-2xl p-4">
-          <p className="text-2xl font-display text-ink">{total}</p>
+        <div className="glass-card rounded-[20px] p-4">
+          <p className="text-2xl font-display font-bold text-ink">{total}</p>
           <p className="text-xs text-ink-soft mt-1">Proveedores registrados</p>
         </div>
-        <div className="bg-surface border border-line rounded-2xl p-4">
-          <p className="text-2xl font-display text-ink">{statusCounts.ACTIVO ?? 0}</p>
+        <div className="glass-card rounded-[20px] p-4">
+          <p className="text-2xl font-display font-bold text-ink">{statusCounts.ACTIVO ?? 0}</p>
           <p className="text-xs text-ink-soft mt-1">Activos</p>
         </div>
-        <div className="bg-surface border border-line rounded-2xl p-4">
-          <p className="text-2xl font-display text-ink">
+        <div className="glass-card rounded-[20px] p-4">
+          <p className="text-2xl font-display font-bold text-ink">
             {(statusCounts.POTENCIAL ?? 0) + (statusCounts.EN_EVALUACION ?? 0)}
           </p>
           <p className="text-xs text-ink-soft mt-1">Por evaluar</p>
         </div>
-        <div className="bg-surface border border-line rounded-2xl p-4">
-          <p className="text-2xl font-display text-ink">{photoCount}</p>
+        <div className="glass-card rounded-[20px] p-4">
+          <p className="text-2xl font-display font-bold text-ink">{photoCount}</p>
           <p className="text-xs text-ink-soft mt-1">Fotos cargadas</p>
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3.5 mb-8">
-        <div className="bg-surface border border-line rounded-2xl p-5">
-          <h2 className="text-xs uppercase tracking-wide text-ink-soft mb-3">Por estado</h2>
+        <div className="glass-card rounded-[20px] p-5">
+          <h2 className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink-soft mb-3">Por estado</h2>
           <ul className="space-y-2">
             {Object.keys(SUPPLIER_STATUS_LABELS).map((status) => (
               <li key={status} className="flex items-center justify-between text-sm">
@@ -69,8 +69,8 @@ export default async function DashboardPage() {
             ))}
           </ul>
         </div>
-        <div className="bg-surface border border-line rounded-2xl p-5">
-          <h2 className="text-xs uppercase tracking-wide text-ink-soft mb-3">Ciudades con más proveedores</h2>
+        <div className="glass-card rounded-[20px] p-5">
+          <h2 className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink-soft mb-3">Ciudades con más proveedores</h2>
           {byCity.length === 0 ? (
             <p className="text-sm text-ink-soft">Aún no hay proveedores registrados.</p>
           ) : (
@@ -92,18 +92,18 @@ export default async function DashboardPage() {
       </div>
 
       <div className="flex items-center justify-between mb-3.5">
-        <h2 className="text-xs uppercase tracking-wide text-ink-soft">Últimos registrados</h2>
+        <h2 className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink-soft">Últimos registrados</h2>
         <Link href="/suppliers" className="text-sm text-accent hover:underline">
           Ver todos
         </Link>
       </div>
 
       {recent.length === 0 ? (
-        <div className="bg-surface border border-line rounded-2xl p-10 text-center">
+        <div className="glass-card rounded-[20px] p-10 text-center">
           <p className="text-sm text-ink-soft mb-3">Todavía no hay proveedores registrados.</p>
           <Link
             href="/suppliers/new"
-            className="inline-block rounded-lg bg-ink text-white text-sm font-medium px-4 py-2.5 hover:bg-ink/90 transition-colors"
+            className="inline-block rounded-[13px] bg-accent text-white text-sm font-bold px-4 py-2.5 shadow-[0_10px_20px_-8px_rgba(214,41,58,0.5)] hover:-translate-y-0.5 transition-all"
           >
             + Registrar el primero
           </Link>
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
               <Link
                 key={s.id}
                 href={`/suppliers/${s.id}`}
-                className="bg-surface border border-line rounded-2xl overflow-hidden hover:border-accent/50 transition-colors flex flex-col"
+                className="glass-card rounded-[20px] overflow-hidden hover:border-accent/50 transition-colors flex flex-col"
               >
                 <div className="aspect-video bg-paper flex items-center justify-center overflow-hidden">
                   {cover ? (

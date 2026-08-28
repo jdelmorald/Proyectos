@@ -10,11 +10,11 @@ export default async function UsuariosPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <h1 className="font-display text-2xl text-ink">Usuarios</h1>
+      <h1 className="font-display font-bold text-2xl text-ink">Usuarios</h1>
 
       <CreateUserForm />
 
-      <div className="bg-surface border border-line rounded-2xl overflow-hidden overflow-x-auto">
+      <div className="glass-card rounded-[20px] overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-ink-soft text-[11px] uppercase tracking-wide">
             <tr>

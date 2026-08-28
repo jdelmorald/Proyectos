@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Sans } from "next/font/google";
+import { Syne, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const fraunces = Fraunces({
+const syne = Syne({
   subsets: ["latin"],
-  variable: "--font-fraunces",
-  axes: ["opsz", "SOFT"],
+  weight: ["600", "700", "800"],
+  variable: "--font-syne",
 });
 
 const plexSans = IBM_Plex_Sans({
@@ -16,9 +16,9 @@ const plexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Proveedores | Sistema de proveedores",
+  title: "Sumivensa | Sistema de Proveedores",
   description:
-    "Sistema para registrar, clasificar y calificar proveedores levantados en visitas de campo, con fotos del local y sus productos.",
+    "Sistema de Sumivensa para registrar, clasificar y calificar proveedores levantados en visitas de campo, con fotos del local y sus productos.",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`h-full antialiased ${fraunces.variable} ${plexSans.variable}`}>
+    <html lang="es" className={`h-full antialiased ${syne.variable} ${plexSans.variable}`}>
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
         <AuthProvider>{children}</AuthProvider>
       </body>
