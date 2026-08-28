@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #2b2320;
+  --color-ink-soft: #8a7d75;
+  --color-paper: #fbf7f3;
+  --color-surface: #ffffff;
+  --color-line: rgba(43, 35, 32, 0.1);
+  --color-accent: #d6293a;
+  --color-accent-deep: #951524;
+  --color-accent-soft: #f6dfdd;
+  --color-steel: #b8bac0;
+  --color-steel-deep: #6b6e78;
+
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-syne), ui-sans-serif, sans-serif;
+}
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: rgba(43, 35, 32, 0.14);
+  --input-bg: rgba(255, 255, 255, 0.55);
+  --input-bg-focus: rgba(255, 255, 255, 0.85);
+  --input-border: rgba(43, 35, 32, 0.12);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ground-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 45% at 15% 10%, var(--color-accent-soft), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 92%, rgba(184, 186, 192, 0.22), transparent 60%);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 30px 70px -20px var(--glass-shadow), 0 1px 0 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.glass-card {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.field-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--color-ink);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.field-input::placeholder {
+  color: var(--color-ink-soft);
+  opacity: 0.7;
+}
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: var(--input-bg-focus);
+  box-shadow: 0 0 0 4px var(--color-accent-soft);
+}
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+.thin-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(43, 35, 32, 0.16);
+  border-radius: 10px;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.panel-in {
+  animation: panelIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
