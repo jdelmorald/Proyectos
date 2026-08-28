@@ -19,8 +19,6 @@ export function Sidebar({ name, role }: SidebarProps) {
     ...(role === "COLABORADOR"
       ? [{ href: "/submissions/new", label: "Nuevo documento" }]
       : []),
-    { href: "/suppliers", label: "Proveedores" },
-    { href: "/suppliers/new", label: "Nuevo proveedor" },
     ...(isAdminRole(role)
       ? [
           { href: "/admin/usuarios", label: "Usuarios" },

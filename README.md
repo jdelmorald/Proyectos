@@ -41,32 +41,6 @@ historial completo de cada intercambio hasta la aprobación final.
   **cuentas de usuario** (colaborador, gerente, director o administrador)
   desde `/admin`.
 
-## Proveedores
-
-Módulo aparte, pensado para levantar información en campo (visitas a
-ciudades) desde el celular y también desde la PC:
-
-- **`/suppliers`** — listado de proveedores con búsqueda (nombre, ciudad,
-  rubro) y filtro rápido por estado.
-- **`/suppliers/new`** — formulario de registro. Solo la razón social y la
-  ciudad son obligatorias, para poder capturar rápido en una visita y
-  completar el resto después.
-- **`/suppliers/[id]`** — ficha del proveedor: el mismo formulario, ya con
-  los datos guardados, para completarlo o corregirlo en cualquier momento.
-
-El formulario cubre los datos típicos para identificar, contactar,
-clasificar y calificar a un proveedor: razón social/nombre comercial, RIF,
-ubicación (ciudad, estado, país, dirección), contacto (persona, cargo,
-teléfono, WhatsApp, correo, web), tipo de proveedor y rubro, productos o
-servicios que ofrece, estado de evaluación (potencial → en evaluación →
-aprobado/activo/rechazado), calificación por calidad/precio/entrega/
-atención, condiciones de pago, pedido mínimo, certificaciones, si emite
-factura fiscal, y notas libres de la visita.
-
-Cualquier usuario autenticado puede registrar y editar proveedores — no
-depende del flujo de aprobación de documentos ni de una empresa del grupo
-en particular.
-
 ## Stack técnico
 
 - [Next.js 16](https://nextjs.org) (App Router, Server Actions) + TypeScript
@@ -145,16 +119,13 @@ openssl rand -base64 32
 ## Estructura relevante
 
 ```
-prisma/schema.prisma          Modelo de datos (empresas, usuarios, documentos, versiones, historial, proveedores)
+prisma/schema.prisma          Modelo de datos (empresas, usuarios, documentos, versiones, historial)
 src/lib/roles.ts               Roles, etiquetas y reglas de visibilidad compartidas
 src/lib/auth.ts                Configuración de NextAuth (credenciales)
 src/lib/actions/submissions.ts  Lógica del flujo de revisión en dos etapas (server actions)
 src/lib/actions/admin.ts        Gestión de empresas y usuarios (administrador/director)
-src/lib/actions/suppliers.ts    Alta y edición de proveedores (server actions)
-src/lib/suppliers.ts            Etiquetas, colores y cálculo de calificación de proveedores
 src/lib/storage.ts             Guardado/lectura de archivos subidos
 src/app/(app)/dashboard         Panel principal (alcance distinto por rol)
 src/app/(app)/submissions/[id]  Detalle de un documento: versión, acciones, historial
-src/app/(app)/suppliers         Listado, alta y ficha de proveedores
 src/app/(app)/admin             Gestión de empresas y usuarios (administrador/director)
 ```

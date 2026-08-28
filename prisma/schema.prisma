@@ -44,25 +44,6 @@ enum HistoryAction {
   COMENTARIO
 }
 
-enum SupplierType {
-  FABRICANTE
-  DISTRIBUIDOR
-  MAYORISTA
-  MINORISTA
-  SERVICIOS
-  IMPORTADOR
-  OTRO
-}
-
-enum SupplierStatus {
-  POTENCIAL
-  EN_EVALUACION
-  APROBADO
-  ACTIVO
-  RECHAZADO
-  INACTIVO
-}
-
 model Company {
   id        String   @id @default(cuid())
   name      String
@@ -88,7 +69,6 @@ model User {
   submissions     Submission[]      @relation("AuthorSubmissions")
   documentVersions DocumentVersion[]
   historyEvents   HistoryEvent[]
-  suppliers       Supplier[]
 }
 
 model Submission {
@@ -146,55 +126,4 @@ model HistoryEvent {
 
   actorId String
   actor   User   @relation(fields: [actorId], references: [id])
-}
-
-model Supplier {
-  id String @id @default(cuid())
-
-  // Identificación
-  legalName String // Razón social
-  tradeName String? // Nombre comercial / marca
-  taxId     String? // RIF / NIT / cédula fiscal
-
-  // Ubicación (para planificar y agrupar visitas por ciudad)
-  city    String
-  state   String?
-  country String  @default("Venezuela")
-  address String?
-
-  // Contacto
-  contactName String?
-  contactRole String?
-  phone       String?
-  whatsapp    String?
-  email       String?
-  website     String?
-
-  // Clasificación
-  type     SupplierType @default(OTRO)
-  category String? // rubro / línea principal (ej. materia prima, empaque, servicios)
-  products String? // productos o servicios que ofrece
-
-  // Calificación y condiciones comerciales
-  status         SupplierStatus @default(POTENCIAL)
-  qualityRating  Int? // 1-5
-  priceRating    Int? // 1-5
-  deliveryRating Int? // 1-5
-  serviceRating  Int? // 1-5
-  paymentTerms   String? // condiciones de pago ofrecidas
-  minOrder       String? // pedido / monto mínimo
-  hasInvoice     Boolean @default(false) // factura fiscal / formalidad
-  certifications String?
-
-  notes     String? // observaciones libres de la visita
-  visitDate DateTime? // fecha en que se levantó la información
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  registeredById String
-  registeredBy   User   @relation(fields: [registeredById], references: [id])
-
-  @@index([city])
-  @@index([status])
 }
