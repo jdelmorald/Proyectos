@@ -2,10 +2,10 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { createSupplier, updateSupplier } from "@/lib/actions/suppliers";
+import { PhotoUploadField } from "@/components/PhotoUploadField";
 import {
   SUPPLIER_TYPE_LABELS,
   SUPPLIER_STATUS_LABELS,
-  PHOTO_CATEGORY_LABELS,
   RATING_FIELDS,
   RATING_LABELS,
   CURRENCY_OPTIONS,
@@ -407,38 +407,7 @@ export function SupplierForm({
       {/* Fotos */}
       <div className="space-y-3.5 pt-2 border-t border-line">
         <h2 className={sectionTitleClass}>Fotos</h2>
-        <div className="grid sm:grid-cols-2 gap-3.5">
-          <div>
-            <label htmlFor="photos" className={labelClass}>
-              {isEdit ? "Agregar fotos" : "Fotos (local, productos, tarjeta...)"}
-            </label>
-            <input
-              id="photos"
-              name="photos"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              multiple
-              className="w-full text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-accent-soft file:text-accent file:px-3.5 file:py-2.5 file:text-sm file:font-medium hover:file:bg-accent-soft/70"
-            />
-          </div>
-          <div>
-            <label htmlFor="photoCategory" className={labelClass}>
-              Qué son estas fotos
-            </label>
-            <select id="photoCategory" name="photoCategory" defaultValue="LOCAL" className={inputClass}>
-              {Object.entries(PHOTO_CATEGORY_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <p className="text-xs text-ink-soft/70">
-          Puedes seleccionar varias fotos a la vez; todas quedarán marcadas
-          con la categoría elegida. Para mezclar categorías, guarda y agrega
-          otro lote.
-        </p>
+        <PhotoUploadField />
       </div>
 
       {/* Productos y servicios */}

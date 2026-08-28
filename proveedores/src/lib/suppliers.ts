@@ -57,7 +57,7 @@ export const RATING_FIELDS: { field: RatingField; label: string }[] = [
   { field: "qualityRating", label: "Calidad" },
   { field: "priceRating", label: "Precio" },
   { field: "deliveryRating", label: "Tiempo de entrega" },
-  { field: "serviceRating", label: "Otros" },
+  { field: "serviceRating", label: "Calidad de atención" },
 ];
 
 export const CURRENCY_OPTIONS = ["USD", "EUR", "BS", "COP", "USDT", "EFECTIVO", "OTRO"] as const;

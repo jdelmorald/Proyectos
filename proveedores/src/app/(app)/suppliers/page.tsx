@@ -20,10 +20,17 @@ const selectClass = "field-input w-full rounded-[13px] px-3.5 py-2.5 text-sm";
 export default async function SuppliersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; city?: string; category?: string; minRating?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    city?: string;
+    category?: string;
+    minRating?: string;
+    unrated?: string;
+  }>;
 }) {
   const user = await requireUser();
-  const { q, status, city, category, minRating } = await searchParams;
+  const { q, status, city, category, minRating, unrated } = await searchParams;
 
   const where: Prisma.SupplierWhereInput = {
     ...(status ? { status: status as never } : {}),
@@ -61,9 +68,11 @@ export default async function SuppliersPage({
   ]);
 
   const minRatingNum = minRating ? Number(minRating) : null;
-  const suppliers = minRatingNum
-    ? suppliersRaw.filter((s) => (overallRating(s) ?? 0) >= minRatingNum)
-    : suppliersRaw;
+  const suppliers = unrated
+    ? suppliersRaw.filter((s) => overallRating(s) == null)
+    : minRatingNum
+      ? suppliersRaw.filter((s) => (overallRating(s) ?? 0) >= minRatingNum)
+      : suppliersRaw;
 
   return (
     <div>
@@ -142,6 +151,7 @@ export default async function SuppliersPage({
           if (city) params.set("city", city);
           if (category) params.set("category", category);
           if (minRating) params.set("minRating", minRating);
+          if (unrated) params.set("unrated", "1");
           const href = params.toString() ? `/suppliers?${params.toString()}` : "/suppliers";
           return (
             <Link
@@ -157,6 +167,25 @@ export default async function SuppliersPage({
             </Link>
           );
         })}
+        <Link
+          href={(() => {
+            const params = new URLSearchParams();
+            if (status) params.set("status", status);
+            if (q) params.set("q", q);
+            if (city) params.set("city", city);
+            if (category) params.set("category", category);
+            if (!unrated) params.set("unrated", "1");
+            const s = params.toString();
+            return s ? `/suppliers?${s}` : "/suppliers";
+          })()}
+          className={`whitespace-nowrap text-sm px-3 py-1.5 rounded-full border transition-colors ${
+            unrated
+              ? "bg-red-700 text-white border-red-700"
+              : "glass-card text-red-700 hover:border-red-300"
+          }`}
+        >
+          Sin calificar
+        </Link>
       </div>
 
       {suppliers.length === 0 ? (

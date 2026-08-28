@@ -169,23 +169,29 @@ function parseSupplierInput(formData: FormData): ParseResult {
   };
 }
 
-/** Guarda las fotos adjuntas en el formulario (si las hay) para un proveedor ya creado. */
+/** Guarda las fotos adjuntas en el formulario (si las hay) para un proveedor ya creado.
+ *  Cada foto puede traer su propia categoría (fachada, producto, tarjeta...), en el
+ *  mismo orden en que aparecen en el DOM. */
 async function attachPhotos(formData: FormData, supplierId: string, uploadedById: string) {
-  const files = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) return null;
+  const fileEntries = formData.getAll("photos");
+  const categoryEntries = formData.getAll("photoCategories").map((v) => String(v));
 
-  const categoryRaw = String(formData.get("photoCategory") ?? "OTRO");
-  const category = PHOTO_CATEGORIES.includes(categoryRaw as (typeof PHOTO_CATEGORIES)[number])
-    ? (categoryRaw as (typeof PHOTO_CATEGORIES)[number])
-    : "OTRO";
+  const items = fileEntries
+    .map((file, i) => ({ file, category: categoryEntries[i] ?? "OTRO" }))
+    .filter((item): item is { file: File; category: string } => item.file instanceof File && item.file.size > 0);
 
-  for (const file of files) {
+  if (items.length === 0) return null;
+
+  for (const { file } of items) {
     if (!isAllowedPhoto(file.type, file.size)) {
       return "Una o más fotos no son válidas. Usa PNG, JPG o WEBP, máximo 8 MB cada una.";
     }
   }
 
-  for (const file of files) {
+  for (const { file, category: categoryRaw } of items) {
+    const category = PHOTO_CATEGORIES.includes(categoryRaw as (typeof PHOTO_CATEGORIES)[number])
+      ? (categoryRaw as (typeof PHOTO_CATEGORIES)[number])
+      : "OTRO";
     const data = Buffer.from(await file.arrayBuffer());
     await prisma.photo.create({
       data: {

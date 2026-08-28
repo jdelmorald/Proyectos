@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
+    "exceljs": "^4.4.0",
     "html2canvas-pro": "^2.4.0",
     "jspdf": "^2.5.2",
     "lucide-react": "^0.469.0",
