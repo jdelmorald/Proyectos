@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { readSupplierPhoto } from "@/lib/storage";
 
 export async function GET(
   _req: NextRequest,
@@ -20,9 +19,7 @@ export async function GET(
     return NextResponse.json({ error: "Foto no encontrada" }, { status: 404 });
   }
 
-  const buffer = await readSupplierPhoto(photo.storedName);
-
-  return new NextResponse(new Uint8Array(buffer), {
+  return new NextResponse(new Uint8Array(photo.data), {
     headers: {
       "Content-Type": photo.mimeType,
       "Content-Length": String(photo.fileSize),

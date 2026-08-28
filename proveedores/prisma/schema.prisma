@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -106,7 +106,7 @@ model Supplier {
 
 model Photo {
   id           String        @id @default(cuid())
-  storedName   String // nombre del archivo en disco
+  data         Bytes // contenido de la imagen, guardado directamente en la base de datos
   originalName String
   mimeType     String
   fileSize     Int

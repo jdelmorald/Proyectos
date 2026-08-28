@@ -53,8 +53,12 @@ export default async function SupplierDetailPage({
         </p>
       </div>
 
+      <div className="glass-card rounded-[20px] p-5 sm:p-6 space-y-3.5">
+        <h2 className="text-[.64rem] font-bold uppercase tracking-[.1em] text-accent">Fotos</h2>
+        <PhotoGallery photos={supplier.photos} />
+      </div>
+
       <SupplierForm
-        photoGallery={<PhotoGallery photos={supplier.photos} />}
         supplier={{
           id: supplier.id,
           legalName: supplier.legalName,

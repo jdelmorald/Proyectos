@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { isAllowedPhoto, saveSupplierPhoto, deleteSupplierPhoto } from "@/lib/storage";
+import { isAllowedPhoto } from "@/lib/storage";
 
 type ActionResult = { error: string } | { success: true };
 
@@ -145,10 +145,10 @@ async function attachPhotos(formData: FormData, supplierId: string, uploadedById
   }
 
   for (const file of files) {
-    const { storedName } = await saveSupplierPhoto(file);
+    const data = Buffer.from(await file.arrayBuffer());
     await prisma.photo.create({
       data: {
-        storedName,
+        data,
         originalName: file.name,
         mimeType: file.type,
         fileSize: file.size,
@@ -210,11 +210,8 @@ export async function deletePhoto(formData: FormData): Promise<void> {
   await requireUser();
 
   const photoId = String(formData.get("photoId") ?? "");
-  const photo = await prisma.photo.findUnique({ where: { id: photoId } });
+  const photo = await prisma.photo.delete({ where: { id: photoId } }).catch(() => null);
   if (!photo) return;
-
-  await prisma.photo.delete({ where: { id: photoId } });
-  await deleteSupplierPhoto(photo.storedName);
 
   revalidatePath(`/suppliers/${photo.supplierId}`);
 }

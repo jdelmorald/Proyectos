@@ -52,14 +52,7 @@ function toDateInputValue(date: Date | null): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function SupplierForm({
-  supplier,
-  photoGallery,
-}: {
-  supplier?: SupplierFormValues;
-  /** Galería de fotos ya cargadas — solo aplica en modo edición. */
-  photoGallery?: React.ReactNode;
-}) {
+export function SupplierForm({ supplier }: { supplier?: SupplierFormValues }) {
   const isEdit = Boolean(supplier);
   const [state, formAction, pending] = useActionState(
     isEdit ? updateSupplier : createSupplier,
@@ -283,7 +276,6 @@ export function SupplierForm({
       {/* Fotos */}
       <div className="space-y-3.5 pt-2 border-t border-line">
         <h2 className={sectionTitleClass}>Fotos</h2>
-        {photoGallery}
         <div className="grid sm:grid-cols-2 gap-3.5">
           <div>
             <label htmlFor="photos" className={labelClass}>
