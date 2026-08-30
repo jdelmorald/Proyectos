@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Truck, PlusCircle, UserCog, LogOut } from "lucide-react";
+import { LayoutDashboard, Truck, PlusCircle, UserCog, LogOut, LayoutGrid } from "lucide-react";
 
 type SidebarProps = {
   name: string;
@@ -16,6 +16,11 @@ const NAV_ICONS: Record<string, typeof LayoutDashboard> = {
   "/suppliers/new": PlusCircle,
   "/admin/usuarios": UserCog,
 };
+
+// URL del Portal (punto de entrada único) al que pertenece este sistema — se usa
+// para el botón "Volver al Portal". Configurable por si algún día cambia de
+// dominio; por defecto apunta al Portal de Sumivensa ya desplegado.
+const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || "https://portal-sumivensa-client.vercel.app";
 
 export function Sidebar({ name, isAdmin }: SidebarProps) {
   const pathname = usePathname();
@@ -76,6 +81,17 @@ export function Sidebar({ name, isAdmin }: SidebarProps) {
           </div>
         </div>
 
+        {/* Siempre visible, arriba de todo — es la única forma de moverse ENTRE
+            sistemas (a diferencia de la navegación de abajo, que es dentro de
+            este). Por eso va fijo aquí y no escondido en ningún menú. */}
+        <a
+          href={PORTAL_URL}
+          className="flex items-center gap-[.65rem] rounded-[11px] px-[.7rem] py-[.55rem] text-[.84rem] font-semibold transition-colors"
+          style={{ color: "var(--color-accent)", background: "rgba(214,41,58,0.08)" }}
+        >
+          <LayoutGrid size={16} /> Volver al Portal
+        </a>
+
         <nav className="flex-1">
           {links.map((link) => {
             const active = pathname === link.href;
@@ -133,13 +149,22 @@ export function Sidebar({ name, isAdmin }: SidebarProps) {
               SUMIVENSA
             </span>
           </Link>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-xs font-medium"
-            style={{ color: "var(--color-ink-soft)" }}
-          >
-            Salir
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href={PORTAL_URL}
+              className="flex items-center gap-1 text-xs font-medium"
+              style={{ color: "var(--color-accent)" }}
+            >
+              <LayoutGrid size={14} /> Portal
+            </a>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-xs font-medium"
+              style={{ color: "var(--color-ink-soft)" }}
+            >
+              Salir
+            </button>
+          </div>
         </div>
         <nav className="flex items-center gap-1.5 px-3 pb-2.5 overflow-x-auto">
           {links.map((link) => {
